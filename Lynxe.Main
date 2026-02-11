@@ -1,0 +1,1757 @@
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- Services
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+
+-- Variables
+local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
+local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+
+local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+
+local active = false
+
+local dragToggle = nil
+local dragSpeed = 0.25
+local dragStart = nil
+local startPos = nil
+
+
+-- Connections
+Connections = {}
+
+function NewConnection(object, event, callback)
+	local connection = object[event]:Connect(callback)
+	table.insert(Connections, connection)
+	return connection
+end
+
+function eraseConnections()
+	for i, v in pairs(Connections) do
+		v:Disconnect()
+		v = nil
+	end
+end
+
+
+local library = {}
+
+library["LynxeUILibrary"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
+library["LynxeUILibrary"]["Name"] = "LynxeUILibrary";
+
+-- library functions, logic, methods
+function library:validate(defaults, options)
+	for i, v in pairs(defaults) do
+		if options[i] == nil then
+			options[i] = v
+		end
+	end
+	return options
+end
+
+function library:tween(object, goal, callback)
+	local tween = TweenService:Create(object, LIBtweenInfo, goal)
+	tween.Completed:Connect(callback or function() end)
+	tween:Play()
+end
+
+
+-- StarterGui.ScreenGui
+library["NotifyContainer"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
+library["NotifyContainer"]["Name"] = "NotifyContainer";
+library["NotifyContainer"]["Enabled"] = true;
+library["NotifyContainer"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+
+function library:Notify(options)
+	options = library:validate({
+		Title = "Notification",
+		Info = "Information",
+		Duration = 5,
+		Image = "rbxassetid://10723374276"
+	}, options or {})
+	
+	local Notifications = library["NotifyContainer"]:GetChildren()
+	local NotifyUI = { Current = nil, Previous = nil }
+	
+	-- create UI
+	do
+		-- StarterGui.ScreenGui.NotifyPrompt
+		NotifyUI["2"] = Instance.new("Frame", library["NotifyContainer"]);
+		NotifyUI["2"]["ZIndex"] = 3;
+		NotifyUI["2"]["BorderSizePixel"] = 0;
+		NotifyUI["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		NotifyUI["2"]["AnchorPoint"] = Vector2.new(1, 1);
+		NotifyUI["2"]["ClipsDescendants"] = true;
+		NotifyUI["2"]["Size"] = UDim2.new(0, 230, 0, 90);
+		NotifyUI["2"]["Position"] = UDim2.new(1, 240, 1, -10); -- Start off-screen
+		NotifyUI["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["2"]["Name"] = [[NotifyPrompt]];
+		NotifyUI["2"]["LayoutOrder"] = 3;
+		NotifyUI["2"]["BackgroundTransparency"] = 0.2;
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.DropShadowHolder
+		NotifyUI["3"] = Instance.new("Frame", NotifyUI["2"]);
+		NotifyUI["3"]["ZIndex"] = 0;
+		NotifyUI["3"]["BorderSizePixel"] = 0;
+		NotifyUI["3"]["Size"] = UDim2.new(1, 0, 1, 0);
+		NotifyUI["3"]["Name"] = [[DropShadowHolder]];
+		NotifyUI["3"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.DropShadowHolder.DropShadow
+		NotifyUI["4"] = Instance.new("ImageLabel", NotifyUI["3"]);
+		NotifyUI["4"]["ZIndex"] = 0;
+		NotifyUI["4"]["BorderSizePixel"] = 0;
+		NotifyUI["4"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		NotifyUI["4"]["ScaleType"] = Enum.ScaleType.Slice;
+		NotifyUI["4"]["ImageTransparency"] = 0.5;
+		NotifyUI["4"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["4"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		NotifyUI["4"]["Image"] = [[rbxassetid://6014261993]];
+		NotifyUI["4"]["Size"] = UDim2.new(1, 47, 1, 47);
+		NotifyUI["4"]["BackgroundTransparency"] = 1;
+		NotifyUI["4"]["Name"] = [[DropShadow]];
+		NotifyUI["4"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.UICorner
+		NotifyUI["5"] = Instance.new("UICorner", NotifyUI["2"]);
+		NotifyUI["5"]["CornerRadius"] = UDim.new(0.025, 8);
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.UIStroke
+		NotifyUI["6"] = Instance.new("UIStroke", NotifyUI["2"]);
+		NotifyUI["6"]["Thickness"] = 1.3;
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.Title
+		NotifyUI["7"] = Instance.new("TextLabel", NotifyUI["2"]);
+		NotifyUI["7"]["TextStrokeTransparency"] = 0.5;
+		NotifyUI["7"]["BorderSizePixel"] = 0;
+		NotifyUI["7"]["TextSize"] = 20;
+		NotifyUI["7"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		NotifyUI["7"]["TextTransparency"] = 0.15;
+		NotifyUI["7"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["7"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		NotifyUI["7"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["7"]["BackgroundTransparency"] = 1;
+		NotifyUI["7"]["Size"] = UDim2.new(0, 100, 0, 20);
+		NotifyUI["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["7"]["Text"] = options["Title"];
+		NotifyUI["7"]["Name"] = [[Title]];
+		NotifyUI["7"]["Position"] = UDim2.new(0, 33, 0, 5);
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.Info
+		NotifyUI["8"] = Instance.new("TextLabel", NotifyUI["2"]);
+		NotifyUI["8"]["TextStrokeTransparency"] = 0;
+		NotifyUI["8"]["BorderSizePixel"] = 0;
+		NotifyUI["8"]["TextSize"] = 16;
+		NotifyUI["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		NotifyUI["8"]["TextTransparency"] = 0.3;
+		NotifyUI["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		NotifyUI["8"]["TextWrapped"] = true;
+		NotifyUI["8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["8"]["BackgroundTransparency"] = 1;
+		NotifyUI["8"]["Size"] = UDim2.new(1, -15, 1, -50);
+		NotifyUI["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["8"]["Text"] = options["Info"];
+		NotifyUI["8"]["Name"] = [[Info]];
+		NotifyUI["8"]["Position"] = UDim2.new(0, 7, 0, 35);
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.Frame
+		NotifyUI["9"] = Instance.new("Frame", NotifyUI["2"]);
+		NotifyUI["9"]["BorderSizePixel"] = 0;
+		NotifyUI["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["9"]["Size"] = UDim2.new(1, 0, 0, 1);
+		NotifyUI["9"]["Position"] = UDim2.new(0, 0, 0, 30);
+		NotifyUI["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["9"]["BackgroundTransparency"] = 0.5;
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.DurationBar
+		NotifyUI["a"] = Instance.new("Frame", NotifyUI["2"]);
+		NotifyUI["a"]["BorderSizePixel"] = 0;
+		NotifyUI["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["a"]["AnchorPoint"] = Vector2.new(0, 1);
+		NotifyUI["a"]["ClipsDescendants"] = true;
+		NotifyUI["a"]["Size"] = UDim2.new(1, 0, 0, 1);
+		NotifyUI["a"]["Position"] = UDim2.new(0, 0, 1, -3);
+		NotifyUI["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["a"]["Name"] = [[DurationBar]];
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.DurationBar.UICorner
+		NotifyUI["b"] = Instance.new("UICorner", NotifyUI["a"]);
+		NotifyUI["b"]["CornerRadius"] = UDim.new(1, 0);
+
+
+		-- StarterGui.ScreenGui.NotifyPrompt.Image
+		NotifyUI["c"] = Instance.new("ImageLabel", NotifyUI["2"]);
+		NotifyUI["c"]["BorderSizePixel"] = 0;
+		NotifyUI["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		NotifyUI["c"]["Image"] = options["Image"];
+		NotifyUI["c"]["Size"] = UDim2.new(0, 23, 0, 23);
+		NotifyUI["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		NotifyUI["c"]["BackgroundTransparency"] = 1;
+		NotifyUI["c"]["Name"] = [[Image]];
+		NotifyUI["c"]["Position"] = UDim2.new(1, -224, 0, 3);
+	end
+	
+	for i, notification in ipairs(Notifications) do
+		local targetY = -10 - (i * 100)
+		library:tween(notification, {Position = UDim2.new(1, -10, 1, targetY)})
+	end
+	
+	library:tween(NotifyUI["2"], {Position = UDim2.new(1, -10, 1, -10)}, function() 
+		local durationBarTweenInfo = TweenInfo.new(options["Duration"], Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+		local durationBarTween = TweenService:Create(NotifyUI["a"], durationBarTweenInfo, {Size = UDim2.new(0, 0, 0, 1)})
+		durationBarTween:Play()
+		
+		task.wait(options["Duration"])
+		library:tween(NotifyUI["2"], {BackgroundTransparency = 1}, function() NotifyUI["2"]:Destroy() end)
+	end)
+	
+	if #Notifications > 0 then
+		NotifyUI.Previous = Notifications[#Notifications]
+	else
+		NotifyUI.Previous = nil
+	end
+	
+	NotifyUI.Current = NotifyUI["2"]
+end
+
+
+function library:CreateWindow(options)
+	
+	options = library:validate({
+		Name = "Lynxe UI",
+		Icon = "rbxassetid://10709782497",
+		
+		LoadingTitle = "Title",
+		LoadingDescription = "Title Tip",
+		
+		LynxeUIPrompts = true,
+		
+		Discord = {
+			Invite = "NoInvite"
+		}
+	}, options or {})
+	
+	local tree = {
+		CurrentTab = nil
+	}
+	
+	-- StarterGui.UI
+	tree["1"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
+	tree["1"]["IgnoreGuiInset"] = true;
+	tree["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
+	tree["1"]["Name"] = [[UI]];
+	tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+
+
+	-- StarterGui.UI.Window
+	tree["2"] = Instance.new("Frame", tree["1"]);
+	tree["2"]["Visible"] = false;
+	tree["2"]["ZIndex"] = 3;
+	tree["2"]["BorderSizePixel"] = 0;
+	tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+	tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
+	tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
+	tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["2"]["Name"] = [[Window]];
+	tree["2"]["LayoutOrder"] = 3;
+	tree["2"]["BackgroundTransparency"] = 0.2;
+
+
+	-- StarterGui.UI.Window.UICorner
+	tree["3"] = Instance.new("UICorner", tree["2"]);
+	tree["3"]["CornerRadius"] = UDim.new(0.025, 8);
+
+
+	-- StarterGui.UI.Window.UIStroke
+	tree["4"] = Instance.new("UIStroke", tree["2"]);
+
+
+	-- StarterGui.UI.Window.DropShadowHolder
+	tree["5"] = Instance.new("Frame", tree["2"]);
+	tree["5"]["ZIndex"] = 0;
+	tree["5"]["BorderSizePixel"] = 0;
+	tree["5"]["Size"] = UDim2.new(1, 0, 1, 0);
+	tree["5"]["Name"] = [[DropShadowHolder]];
+	tree["5"]["BackgroundTransparency"] = 1;
+
+
+	-- StarterGui.UI.Window.DropShadowHolder.DropShadow
+	tree["6"] = Instance.new("ImageLabel", tree["5"]);
+	tree["6"]["ZIndex"] = 0;
+	tree["6"]["BorderSizePixel"] = 0;
+	tree["6"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+	tree["6"]["ScaleType"] = Enum.ScaleType.Slice;
+	tree["6"]["ImageTransparency"] = 0.3;
+	tree["6"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+	tree["6"]["Image"] = [[rbxassetid://6014261993]];
+	tree["6"]["Size"] = UDim2.new(1, 47, 1, 47);
+	tree["6"]["BackgroundTransparency"] = 1;
+	tree["6"]["Name"] = [[DropShadow]];
+	tree["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+	
+	-- StarterGui.UI.Window.Topbar
+	tree["7"] = Instance.new("Frame", tree["2"]);
+	tree["7"]["ZIndex"] = 3;
+	tree["7"]["BorderSizePixel"] = 0;
+	tree["7"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+	tree["7"]["Size"] = UDim2.new(1, 0, 0, 20);
+	tree["7"]["Position"] = UDim2.new(0, 0, 0, 10);
+	tree["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["7"]["Name"] = [[Topbar]];
+	tree["7"]["BackgroundTransparency"] = 1;
+
+
+	-- StarterGui.UI.Window.Topbar.Title
+	tree["8"] = Instance.new("TextLabel", tree["7"]);
+	tree["8"]["TextStrokeTransparency"] = 0.5;
+	tree["8"]["BorderSizePixel"] = 0;
+	tree["8"]["TextSize"] = 20;
+	tree["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+	tree["8"]["TextTransparency"] = 0.15;
+	tree["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+	tree["8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["8"]["BackgroundTransparency"] = 1;
+	tree["8"]["Size"] = UDim2.new(0, 100, 0, 20);
+	tree["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["8"]["Text"] = options["Name"];
+	tree["8"]["Name"] = [[Title]];
+	tree["8"]["Position"] = UDim2.new(0, 40, 0, 0);
+
+
+	-- StarterGui.UI.Window.Topbar.Logo
+	tree["9"] = Instance.new("ImageLabel", tree["7"]);
+	tree["9"]["BorderSizePixel"] = 0;
+	tree["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["9"]["ImageTransparency"] = 0.3;
+	tree["9"]["Image"] = options["Icon"];
+	tree["9"]["Size"] = UDim2.new(0, 20, 0, 20);
+	tree["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["9"]["BackgroundTransparency"] = 1;
+	tree["9"]["Name"] = [[Logo]];
+	tree["9"]["Position"] = UDim2.new(0, 13, 0, 0);
+
+
+	-- StarterGui.UI.Window.Topbar.CloseButton
+	tree["a"] = Instance.new("ImageButton", tree["7"]);
+	tree["a"]["BorderSizePixel"] = 0;
+	tree["a"]["ImageTransparency"] = 0.3;
+	tree["a"]["BackgroundTransparency"] = 1;
+	tree["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["a"]["AnchorPoint"] = Vector2.new(1, 0);
+	tree["a"]["Image"] = [[rbxassetid://10747384394]];
+	tree["a"]["Size"] = UDim2.new(0, 20, 0, 20);
+	tree["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["a"]["Name"] = [[CloseButton]];
+	tree["a"]["Position"] = UDim2.new(1, -10, 0, 0);
+
+
+	-- StarterGui.UI.Window.Topbar.SettingsButton
+	tree["b"] = Instance.new("ImageButton", tree["7"]);
+	tree["b"]["BorderSizePixel"] = 0;
+	tree["b"]["ImageTransparency"] = 0.3;
+	tree["b"]["BackgroundTransparency"] = 1;
+	tree["b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["b"]["AnchorPoint"] = Vector2.new(1, 0);
+	tree["b"]["Image"] = [[rbxassetid://10723415494]];
+	tree["b"]["Size"] = UDim2.new(0, 20, 0, 20);
+	tree["b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["b"]["Name"] = [[SettingsButton]];
+	tree["b"]["Position"] = UDim2.new(1, -35, 0, 0);
+
+
+	-- StarterGui.UI.Window.Topbar.Version
+	tree["c"] = Instance.new("TextLabel", tree["7"]);
+	tree["c"]["TextStrokeTransparency"] = 0.5;
+	tree["c"]["BorderSizePixel"] = 0;
+	tree["c"]["TextSize"] = 15;
+	tree["c"]["TextTransparency"] = 0.5;
+	tree["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["c"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+	tree["c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["c"]["BackgroundTransparency"] = 1;
+	tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
+	tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
+	tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["c"]["Text"] = [[Ver. 0.0.1]];
+	tree["c"]["Name"] = [[Version]];
+	tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
+
+
+	-- StarterGui.UI.Window.Topbar.DiscordButton
+	tree["d"] = Instance.new("ImageButton", tree["7"]);
+	tree["d"]["BorderSizePixel"] = 0;
+	tree["d"]["ImageTransparency"] = 0.3;
+	tree["d"]["BackgroundTransparency"] = 1;
+	tree["d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["d"]["AnchorPoint"] = Vector2.new(1, 0);
+	tree["d"]["Image"] = [[rbxassetid://117327414436896]];
+	tree["d"]["Size"] = UDim2.new(0, 20, 0, 20);
+	tree["d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["d"]["Name"] = [[DiscordButton]];
+	tree["d"]["Position"] = UDim2.new(1, -63, 0, 0);
+	
+	-- StarterGui.UI.Window.TabButtonHolder
+	tree["e"] = Instance.new("ScrollingFrame", tree["2"]);
+	tree["e"]["Active"] = true;
+	tree["e"]["ScrollingDirection"] = Enum.ScrollingDirection.Y;
+	tree["e"]["BorderSizePixel"] = 0;
+	tree["e"]["ScrollingEnabled"] = false;
+	tree["e"]["Name"] = [[TabButtonHolder]];
+	tree["e"]["ScrollBarImageTransparency"] = 1;
+	tree["e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	tree["e"]["AutomaticCanvasSize"] = Enum.AutomaticSize.Y;
+	tree["e"]["Size"] = UDim2.new(0, 147, 0, 297);
+	tree["e"]["ScrollBarImageColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["e"]["Position"] = UDim2.new(0, 10, 0, 40);
+	tree["e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["e"]["ScrollBarThickness"] = 1;
+	tree["e"]["BackgroundTransparency"] = 1;
+
+
+	-- StarterGui.UI.Window.TabButtonHolder.UIListLayout
+	tree["f"] = Instance.new("UIListLayout", tree["e"]);
+	tree["f"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
+	tree["f"]["Padding"] = UDim.new(0, 10);
+	tree["f"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+	
+	
+	-- StarterGui.UI.Window.MainContainer
+	tree["45"] = Instance.new("Frame", tree["2"]);
+	tree["45"]["BorderSizePixel"] = 0;
+	tree["45"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+	tree["45"]["ClipsDescendants"] = true;
+	tree["45"]["Size"] = UDim2.new(1, -190, 1, -60);
+	tree["45"]["Position"] = UDim2.new(0, 170, 0, 40);
+	tree["45"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	tree["45"]["Name"] = [[MainContainer]];
+	tree["45"]["BackgroundTransparency"] = 1;
+
+
+	-- StarterGui.UI.Window.MainContainer.UICorner
+	tree["46"] = Instance.new("UICorner", tree["45"]);
+	tree["46"]["CornerRadius"] = UDim.new(0, 5);
+	
+	-- disord prompt UI
+	do
+		-- StarterGui.UI.Window.DiscordPrompt
+		tree["c6"] = Instance.new("Frame", tree["2"]);
+		tree["c6"]["Visible"] = false;
+		tree["c6"]["BorderSizePixel"] = 0;
+		tree["c6"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		tree["c6"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["c6"]["Size"] = UDim2.new(0, 160, 0, 50);
+		tree["c6"]["Position"] = UDim2.new(1, 0, 0, -60);
+		tree["c6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["c6"]["Name"] = [[DiscordPrompt]];
+		tree["c6"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.UICorner
+		tree["c7"] = Instance.new("UICorner", tree["c6"]);
+		tree["c7"]["CornerRadius"] = UDim.new(0, 10);
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.UIStroke
+		tree["c8"] = Instance.new("UIStroke", tree["c6"]);
+
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.DropShadowHolder
+		tree["c9"] = Instance.new("Frame", tree["c6"]);
+		tree["c9"]["ZIndex"] = 0;
+		tree["c9"]["BorderSizePixel"] = 0;
+		tree["c9"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["c9"]["Name"] = [[DropShadowHolder]];
+		tree["c9"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.DropShadowHolder.DropShadow
+		tree["ca"] = Instance.new("ImageLabel", tree["c9"]);
+		tree["ca"]["ZIndex"] = 0;
+		tree["ca"]["BorderSizePixel"] = 0;
+		tree["ca"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		tree["ca"]["ScaleType"] = Enum.ScaleType.Slice;
+		tree["ca"]["ImageTransparency"] = 0.5;
+		tree["ca"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["ca"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		tree["ca"]["Image"] = [[rbxassetid://6014261993]];
+		tree["ca"]["Size"] = UDim2.new(1, 47, 1, 47);
+		tree["ca"]["BackgroundTransparency"] = 1;
+		tree["ca"]["Name"] = [[DropShadow]];
+		tree["ca"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.Invite
+		tree["cb"] = Instance.new("TextLabel", tree["c6"]);
+		tree["cb"]["TextStrokeTransparency"] = 0.5;
+		tree["cb"]["BorderSizePixel"] = 0;
+		tree["cb"]["TextSize"] = 15;
+		tree["cb"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["cb"]["TextTransparency"] = 0.15;
+		tree["cb"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["cb"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["cb"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["cb"]["BackgroundTransparency"] = 1;
+		tree["cb"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["cb"]["Size"] = UDim2.new(1, -20, 0, 15);
+		tree["cb"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["cb"]["Text"] = "Discord.gg/" .. options["Discord"]["Invite"];
+		tree["cb"]["Name"] = [[Invite]];
+		tree["cb"]["Position"] = UDim2.new(1, -5, 0, 18);
+
+
+		-- StarterGui.UI.Window.DiscordPrompt.CopyButton
+		tree["cc"] = Instance.new("ImageButton", tree["c6"]);
+		tree["cc"]["BorderSizePixel"] = 0;
+		tree["cc"]["ImageTransparency"] = 0.15;
+		tree["cc"]["BackgroundTransparency"] = 1;
+		tree["cc"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["cc"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["cc"]["Image"] = [[rbxassetid://10709812159]];
+		tree["cc"]["Size"] = UDim2.new(0, 15, 0, 15);
+		tree["cc"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["cc"]["Name"] = [[CopyButton]];
+		tree["cc"]["Position"] = UDim2.new(1, -17, 0, 19);
+	end
+	
+	-- Settings Page
+	do
+		-- StarterGui.UI.Window.SettingsPage
+		tree["2b"] = Instance.new("Frame", tree["2"]);
+		tree["2b"]["Visible"] = false;
+		tree["2b"]["ZIndex"] = 3;
+		tree["2b"]["BorderSizePixel"] = 0;
+		tree["2b"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		tree["2b"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["2b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["2b"]["Name"] = [[SettingsPage]];
+		tree["2b"]["BackgroundTransparency"] = 1; -- 0.05
+
+
+		-- StarterGui.UI.Window.SettingsPage.UICorner
+		tree["2c"] = Instance.new("UICorner", tree["2b"]);
+		tree["2c"]["CornerRadius"] = UDim.new(0, 15);
+
+
+		-- StarterGui.UI.Window.SettingsPage.UIStroke
+		tree["2e"] = Instance.new("UIStroke", tree["2b"]);
+		tree["2e"]["Thickness"] = 0.5;
+		tree["2e"]["Color"] = Color3.fromRGB(101, 101, 101);
+
+
+		-- StarterGui.UI.Window.SettingsPage.CloseButton
+		tree["2f"] = Instance.new("ImageButton", tree["2b"]);
+		tree["2f"]["BorderSizePixel"] = 0;
+		tree["2f"]["ImageTransparency"] = 0.3;
+		tree["2f"]["BackgroundTransparency"] = 1;
+		tree["2f"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["2f"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["2f"]["Image"] = [[rbxassetid://10709768114]];
+		tree["2f"]["Size"] = UDim2.new(0, 20, 0, 20);
+		tree["2f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["2f"]["Name"] = [[CloseButton]];
+		tree["2f"]["Position"] = UDim2.new(1, -10, 0, 10);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content
+		tree["30"] = Instance.new("Frame", tree["2b"]);
+		tree["30"]["BorderSizePixel"] = 0;
+		tree["30"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["30"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["30"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["30"]["Name"] = [[Content]];
+		tree["30"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne
+		tree["31"] = Instance.new("Frame", tree["30"]);
+		tree["31"]["BorderSizePixel"] = 0;
+		tree["31"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+		tree["31"]["Size"] = UDim2.new(0, 128, 0, 50);
+		tree["31"]["Position"] = UDim2.new(0, 50, 0, 50);
+		tree["31"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["31"]["Name"] = [[ToggleOne]];
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.UICorner
+		tree["32"] = Instance.new("UICorner", tree["31"]);
+		tree["32"]["CornerRadius"] = UDim.new(0, 10);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Name
+		tree["33"] = Instance.new("TextLabel", tree["31"]);
+		tree["33"]["BorderSizePixel"] = 0;
+		tree["33"]["TextSize"] = 16;
+		tree["33"]["TextTransparency"] = 0.2;
+		tree["33"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["33"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["33"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["33"]["BackgroundTransparency"] = 1;
+		tree["33"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["33"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["33"]["Text"] = [[Vertical]];
+		tree["33"]["Name"] = [[Name]];
+		tree["33"]["Position"] = UDim2.new(0, -15, 0, 15);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate
+		tree["34"] = Instance.new("Frame", tree["31"]);
+		tree["34"]["BorderSizePixel"] = 0;
+		tree["34"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+		tree["34"]["Size"] = UDim2.new(0, 45, 0, 20);
+		tree["34"]["Position"] = UDim2.new(0, 67, 0, 15);
+		tree["34"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["34"]["Name"] = [[Indicate]];
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate.UICorner
+		tree["35"] = Instance.new("UICorner", tree["34"]);
+		tree["35"]["CornerRadius"] = UDim.new(0, 20);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate.UIStroke
+		tree["36"] = Instance.new("UIStroke", tree["34"]);
+		tree["36"]["Color"] = Color3.fromRGB(101, 101, 101);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate.Frame
+		tree["37"] = Instance.new("Frame", tree["34"]);
+		tree["37"]["BorderSizePixel"] = 0;
+		tree["37"]["BackgroundColor3"] = Color3.fromRGB(101, 101, 101);
+		tree["37"]["Size"] = UDim2.new(0, 15, 0, 15);
+		tree["37"]["Position"] = UDim2.new(0, 2, 0, 2);
+		tree["37"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate.Frame.UICorner
+		tree["38"] = Instance.new("UICorner", tree["37"]);
+		tree["38"]["CornerRadius"] = UDim.new(1, 0);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Button
+		tree["39"] = Instance.new("TextButton", tree["31"]);
+		tree["39"]["BorderSizePixel"] = 0;
+		tree["39"]["TextTransparency"] = 1;
+		tree["39"]["TextSize"] = 14;
+		tree["39"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["39"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["39"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["39"]["BackgroundTransparency"] = 1;
+		tree["39"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["39"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["39"]["Text"] = [[]];
+		tree["39"]["Name"] = [[Button]];
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.UIStroke
+		tree["3a"] = Instance.new("UIStroke", tree["31"]);
+		tree["3a"]["Thickness"] = 0.7;
+		tree["3a"]["Color"] = Color3.fromRGB(101, 101, 101);
+		tree["3a"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey
+		tree["3b"] = Instance.new("Frame", tree["30"]);
+		tree["3b"]["BorderSizePixel"] = 0;
+		tree["3b"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+		tree["3b"]["Size"] = UDim2.new(0, 150, 0, 50);
+		tree["3b"]["Position"] = UDim2.new(0, 50, 0, 110);
+		tree["3b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["3b"]["Name"] = [[Hotkey]];
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.UICorner
+		tree["3c"] = Instance.new("UICorner", tree["3b"]);
+		tree["3c"]["CornerRadius"] = UDim.new(0, 10);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.Name
+		tree["3d"] = Instance.new("TextLabel", tree["3b"]);
+		tree["3d"]["BorderSizePixel"] = 0;
+		tree["3d"]["TextSize"] = 16;
+		tree["3d"]["TextTransparency"] = 0.2;
+		tree["3d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["3d"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["3d"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["3d"]["BackgroundTransparency"] = 1;
+		tree["3d"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["3d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["3d"]["Text"] = [[Open/Close]];
+		tree["3d"]["Name"] = [[Name]];
+		tree["3d"]["Position"] = UDim2.new(0, -5, 0, 15);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.Button
+		tree["3e"] = Instance.new("TextButton", tree["3b"]);
+		tree["3e"]["BorderSizePixel"] = 0;
+		tree["3e"]["TextTransparency"] = 1;
+		tree["3e"]["TextSize"] = 14;
+		tree["3e"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["3e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["3e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["3e"]["BackgroundTransparency"] = 1;
+		tree["3e"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["3e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["3e"]["Text"] = [[]];
+		tree["3e"]["Name"] = [[Button]];
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.Key
+		tree["3f"] = Instance.new("TextLabel", tree["3b"]);
+		tree["3f"]["BorderSizePixel"] = 0;
+		tree["3f"]["TextSize"] = 15;
+		tree["3f"]["TextTransparency"] = 0.15;
+		tree["3f"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+		tree["3f"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["3f"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["3f"]["Size"] = UDim2.new(0, 40, 0, 40);
+		tree["3f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["3f"]["Text"] = [[P]];
+		tree["3f"]["Name"] = [[Key]];
+		tree["3f"]["Position"] = UDim2.new(0, 95, 0, 5);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.Key.UICorner
+		tree["40"] = Instance.new("UICorner", tree["3f"]);
+
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.Key.UIStroke
+		tree["41"] = Instance.new("UIStroke", tree["3f"]);
+		tree["41"]["Thickness"] = 0.7;
+		tree["41"]["Color"] = Color3.fromRGB(101, 101, 101);
+		tree["41"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Hotkey.UIStroke
+		tree["42"] = Instance.new("UIStroke", tree["3b"]);
+		tree["42"]["Thickness"] = 0.7;
+		tree["42"]["Color"] = Color3.fromRGB(101, 101, 101);
+		tree["42"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+		-- StarterGui.UI.Window.SettingsPage.Content.Credits
+		tree["43"] = Instance.new("TextLabel", tree["30"]);
+		tree["43"]["BorderSizePixel"] = 0;
+		tree["43"]["TextSize"] = 10;
+		tree["43"]["TextTransparency"] = 0.5;
+		tree["43"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["43"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["43"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["43"]["BackgroundTransparency"] = 1;
+		tree["43"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["43"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["43"]["Text"] = [[Lynxe UI: Made by foggza]];
+		tree["43"]["Name"] = [[Credits]];
+		tree["43"]["Position"] = UDim2.new(0, 50, 0, 325);
+
+
+		-- StarterGui.UI.Window.SettingsPage.Title
+		tree["44"] = Instance.new("TextLabel", tree["2b"]);
+		tree["44"]["TextStrokeTransparency"] = 0.5;
+		tree["44"]["BorderSizePixel"] = 0;
+		tree["44"]["TextSize"] = 20;
+		tree["44"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["44"]["TextTransparency"] = 0.15;
+		tree["44"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["44"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["44"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["44"]["BackgroundTransparency"] = 1;
+		tree["44"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["44"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["44"]["Text"] = [[Settings]];
+		tree["44"]["Name"] = [[Title]];
+		tree["44"]["Position"] = UDim2.new(0, 20, 0, 10);
+	end
+	
+	-- loading window
+	do
+		-- StarterGui.UI.LoadingWindow
+		tree["cd"] = Instance.new("Frame", tree["1"]);
+		tree["cd"]["Visible"] = true;
+		tree["cd"]["ZIndex"] = 3;
+		tree["cd"]["BorderSizePixel"] = 0;
+		tree["cd"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		tree["cd"]["Size"] = UDim2.new(0, 300, 0, 200);
+		tree["cd"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["cd"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["cd"].Size.Y.Offset / 2));
+		tree["cd"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["cd"]["Name"] = [[LoadingWindow]];
+		tree["cd"]["LayoutOrder"] = 3;
+		tree["cd"]["BackgroundTransparency"] = 1; -- 0.2
+
+
+		-- StarterGui.UI.LoadingWindow.DropShadowHolder
+		tree["ce"] = Instance.new("Frame", tree["cd"]);
+		tree["ce"]["ZIndex"] = 0;
+		tree["ce"]["BorderSizePixel"] = 0;
+		tree["ce"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["ce"]["Name"] = [[DropShadowHolder]];
+		tree["ce"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.UI.LoadingWindow.DropShadowHolder.DropShadow
+		tree["cf"] = Instance.new("ImageLabel", tree["ce"]);
+		tree["cf"]["ZIndex"] = 0;
+		tree["cf"]["BorderSizePixel"] = 0;
+		tree["cf"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		tree["cf"]["ScaleType"] = Enum.ScaleType.Slice;
+		tree["cf"]["ImageTransparency"] = 1; -- 0.5
+		tree["cf"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["cf"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		tree["cf"]["Image"] = [[rbxassetid://6014261993]];
+		tree["cf"]["Size"] = UDim2.new(1, 47, 1, 47);
+		tree["cf"]["BackgroundTransparency"] = 1;
+		tree["cf"]["Name"] = [[DropShadow]];
+		tree["cf"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+
+
+		-- StarterGui.UI.LoadingWindow.UICorner
+		tree["d0"] = Instance.new("UICorner", tree["cd"]);
+		tree["d0"]["CornerRadius"] = UDim.new(0.025, 8);
+
+
+		-- StarterGui.UI.LoadingWindow.UIStroke
+		tree["d1"] = Instance.new("UIStroke", tree["cd"]);
+		tree["d1"]["Transparency"] = 1;
+
+
+		-- StarterGui.UI.LoadingWindow.UITitle
+		tree["d2"] = Instance.new("TextLabel", tree["cd"]);
+		tree["d2"]["TextStrokeTransparency"] = 0.5;
+		tree["d2"]["BorderSizePixel"] = 0;
+		tree["d2"]["TextSize"] = 20;
+		tree["d2"]["TextTransparency"] = 1; -- 0.15
+		tree["d2"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d2"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["d2"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d2"]["BackgroundTransparency"] = 1;
+		tree["d2"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["d2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d2"]["Text"] = [[Lynxe UI]];
+		tree["d2"]["Name"] = [[UITitle]];
+		tree["d2"]["Position"] = UDim2.new(0, 100, 0, 5);
+
+
+		-- StarterGui.UI.LoadingWindow.Title
+		tree["d3"] = Instance.new("TextLabel", tree["cd"]);
+		tree["d3"]["TextStrokeTransparency"] = 0.5;
+		tree["d3"]["BorderSizePixel"] = 0;
+		tree["d3"]["TextSize"] = 20;
+		tree["d3"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["d3"]["TextTransparency"] = 1; -- 0.15
+		tree["d3"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d3"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["d3"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d3"]["BackgroundTransparency"] = 1;
+		tree["d3"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["d3"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d3"]["Text"] = options["LoadingTitle"];
+		tree["d3"]["Name"] = [[Title]];
+		tree["d3"]["Position"] = UDim2.new(0, 20, 0, 60);
+
+
+		-- StarterGui.UI.LoadingWindow.TitleTip
+		tree["d4"] = Instance.new("TextLabel", tree["cd"]);
+		tree["d4"]["TextStrokeTransparency"] = 0;
+		tree["d4"]["BorderSizePixel"] = 0;
+		tree["d4"]["TextSize"] = 16;
+		tree["d4"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["d4"]["TextTransparency"] = 1; -- 0.3
+		tree["d4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d4"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["d4"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d4"]["BackgroundTransparency"] = 1;
+		tree["d4"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["d4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d4"]["Text"] = options["LoadingDescription"];
+		tree["d4"]["Name"] = [[TitleTip]];
+		tree["d4"]["Position"] = UDim2.new(0, 20, 0, 85);
+
+
+		-- StarterGui.UI.LoadingWindow.UICred
+		tree["d5"] = Instance.new("TextLabel", tree["cd"]);
+		tree["d5"]["TextStrokeTransparency"] = 0.5;
+		tree["d5"]["BorderSizePixel"] = 0;
+		tree["d5"]["TextSize"] = 10;
+		tree["d5"]["TextTransparency"] = 0.3; -- 0.15
+		tree["d5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d5"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["d5"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d5"]["BackgroundTransparency"] = 1;
+		tree["d5"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["d5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d5"]["Text"] = [[by: fogzza]];
+		tree["d5"]["Name"] = [[UICred]];
+		tree["d5"]["Position"] = UDim2.new(0, 200, 0, 5);
+
+
+		-- StarterGui.UI.LoadingWindow.Frame
+		tree["d6"] = Instance.new("Frame", tree["cd"]);
+		tree["d6"]["BorderSizePixel"] = 0;
+		tree["d6"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d6"]["Size"] = UDim2.new(1, 0, 0, 1);
+		tree["d6"]["Position"] = UDim2.new(0, 0, 0, 30);
+		tree["d6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d6"]["BackgroundTransparency"] = 1; -- 0.5
+
+
+		-- StarterGui.UI.LoadingWindow.DiscordTip
+		tree["d7"] = Instance.new("TextLabel", tree["cd"]);
+		tree["d7"]["TextStrokeTransparency"] = 0;
+		tree["d7"]["BorderSizePixel"] = 0;
+		tree["d7"]["TextSize"] = 16;
+		tree["d7"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["d7"]["TextTransparency"] = 1; -- 0.3
+		tree["d7"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d7"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		tree["d7"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d7"]["BackgroundTransparency"] = 1;
+		tree["d7"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["d7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d7"]["Text"] = "discord.gg/" .. options["Discord"]["Invite"];
+		tree["d7"]["Name"] = [[DiscordTip]];
+		tree["d7"]["Position"] = UDim2.new(0, 20, 0, 110);
+
+
+		-- StarterGui.UI.LoadingWindow.Indicate
+		tree["d8"] = Instance.new("ImageLabel", tree["cd"]);
+		tree["d8"]["BorderSizePixel"] = 0;
+		tree["d8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d8"]["ImageTransparency"] = 1; -- 0.15
+		tree["d8"]["Image"] = [[rbxassetid://10723433935]];
+		tree["d8"]["Size"] = UDim2.new(0, 40, 0, 40);
+		tree["d8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d8"]["BackgroundTransparency"] = 1;
+		tree["d8"]["Name"] = [[Indicate]];
+		tree["d8"]["Position"] = UDim2.new(0, (tree["cd"].Size.X.Offset / 2) , 0, 155);
+		tree["d8"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+	end
+	
+	task.wait(1)
+	
+	-- UI loading
+	local function loadUI()
+		task.spawn(function()
+			library:tween(tree["cd"], {BackgroundTransparency = 0.2})
+			library:tween(tree["cf"], {ImageTransparency = 0.5})
+			library:tween(tree["d1"], {Transparency = 0})
+			library:tween(tree["d2"], {TextTransparency = 0.15})
+			library:tween(tree["d3"], {TextTransparency = 0.15})
+			library:tween(tree["d4"], {TextTransparency = 0.3})
+			library:tween(tree["d5"], {TextTransparency = 0.15})
+			library:tween(tree["d6"], {BackgroundTransparency = 0.5})
+			library:tween(tree["d7"], {TextTransparency = 0.3})
+			library:tween(tree["d8"], {ImageTransparency = 0.15})
+
+			local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
+			rotateTween:Play()
+		end)
+
+		task.wait(3)
+
+		task.spawn(function()
+			library:tween(tree["cd"], {BackgroundTransparency = 1})
+			library:tween(tree["cf"], {ImageTransparency = 1})
+			library:tween(tree["d1"], {Transparency = 1})
+			library:tween(tree["d2"], {TextTransparency = 1})
+			library:tween(tree["d3"], {TextTransparency = 1})
+			library:tween(tree["d4"], {TextTransparency = 1})
+			library:tween(tree["d5"], {TextTransparency = 1})
+			library:tween(tree["d6"], {BackgroundTransparency = 1})
+			library:tween(tree["d7"], {TextTransparency = 1})
+			library:tween(tree["d8"], {ImageTransparency = 1})
+
+			local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
+			rotateTween:Play()
+		end)
+
+		task.wait(1)
+		tree["cd"]:Destroy()
+		tree["2"].Visible = true
+
+		if options["LynxeUIPrompts"] then 
+			library:Notify({
+				Title = "Lynxe UI",
+				Info = "Welcome to Lynxe UI",
+				Duration = 3,
+				Image = "rbxassetid://10709790644"
+			})
+		end
+	end
+	loadUI()
+	
+	
+	-- Draggable Window logic
+	local UIFrame = tree["2"]
+	
+	local function updateInput(input)
+		local delta = input.Position - dragStart
+		local position = UDim2.new(startPos.X.Scale,startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		game:GetService("TweenService"):Create(UIFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+	end
+
+	UIFrame.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+			dragToggle = true
+			dragStart = input.Position
+			startPos = UIFrame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false
+				end
+			end)
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			if dragToggle then
+				updateInput(input)
+			end
+		end
+	end)
+	
+	-- Settings page logic
+	do
+		NewConnection(tree["b"], "Activated", function()
+			local SettingsPage = tree["2b"]
+			local CloseButton = tree["2f"]
+			
+			local navigation = tree["e"]
+			local Pages = tree["45"]
+			local topbar = tree["7"]
+
+			tree["b"].Active = false
+			SettingsPage.Visible = true
+			
+			navigation.Visible = false
+			topbar.Visible = false
+			Pages.Visible = false
+			
+			library:tween(SettingsPage, {BackgroundTransparency = 0.85})
+			library:tween()
+			library:tween(tree["2e"], {Transparency = 0})
+
+			NewConnection(CloseButton, "Activated", function()
+				library:tween(SettingsPage, {BackgroundTransparency = 1}, function()
+					tree["b"].Active = true
+					navigation.Visible = true
+					topbar.Visible = true
+					Pages.Visible = true
+					
+					SettingsPage.Visible = false
+				end)
+			end)
+		end)
+		
+		
+		
+	end
+	
+	
+	-- Closing logic
+	NewConnection(tree["a"], "Activated", function()
+		if tree["1e"] then tree["1e"]:Destroy() end -- prevent UI cloning spam
+
+		-- close prompt
+		do
+			-- StarterGui.UI.Window.ClosePrompt
+			tree["1e"] = Instance.new("Frame", tree["2"]);
+			tree["1e"]["Visible"] = true;
+			tree["1e"]["ZIndex"] = 3;
+			tree["1e"]["BorderSizePixel"] = 0;
+			tree["1e"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["1e"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tree["1e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["1e"]["Name"] = [[ClosePrompt]];
+			tree["1e"]["BackgroundTransparency"] = 1;
+
+
+			-- StarterGui.UI.Window.ClosePrompt.UICorner
+			tree["1g"] = Instance.new("UICorner", tree["1e"]);
+			tree["1g"]["CornerRadius"] = UDim.new(0.025, 8);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt
+			tree["1f"] = Instance.new("Frame", tree["1e"]);
+			tree["1f"]["BorderSizePixel"] = 0;
+			tree["1f"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+			tree["1f"]["Size"] = UDim2.new(0, 250, 0, 162);
+			tree["1f"]["Position"] = UDim2.new(0.25, 0, 0.26, 0);
+			tree["1f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["1f"]["Name"] = [[Prompt]];
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.UICorner
+			tree["20"] = Instance.new("UICorner", tree["1f"]);
+
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.UIGradient
+			tree["21"] = Instance.new("UIGradient", tree["1f"]);
+			tree["21"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),ColorSequenceKeypoint.new(0.107, Color3.fromRGB(83, 83, 83)),ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))};
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.UIStroke
+			tree["22"] = Instance.new("UIStroke", tree["1f"]);
+			tree["22"]["Thickness"] = 0.5;
+			tree["22"]["Color"] = Color3.fromRGB(51, 51, 51);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPrompt
+			tree["23"] = Instance.new("TextLabel", tree["1f"]);
+			tree["23"]["TextWrapped"] = true;
+			tree["23"]["BorderSizePixel"] = 0;
+			tree["23"]["TextSize"] = 20;
+			tree["23"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["23"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tree["23"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["23"]["BackgroundTransparency"] = 1;
+			tree["23"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
+			tree["23"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["23"]["Text"] = [[( Close UI )]];
+			tree["23"]["Name"] = [[TextPrompt]];
+			tree["23"]["Position"] = UDim2.new(0, 0, 0.12105, 0);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPromptTwo
+			tree["24"] = Instance.new("TextLabel", tree["1f"]);
+			tree["24"]["TextWrapped"] = true;
+			tree["24"]["BorderSizePixel"] = 0;
+			tree["24"]["TextSize"] = 20;
+			tree["24"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["24"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tree["24"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["24"]["BackgroundTransparency"] = 1;
+			tree["24"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
+			tree["24"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["24"]["Text"] = [[Are you sure?]];
+			tree["24"]["Name"] = [[TextPromptTwo]];
+			tree["24"]["Position"] = UDim2.new(0, 0, 0.32105, 0);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne
+			tree["25"] = Instance.new("TextButton", tree["1f"]);
+			tree["25"]["BorderSizePixel"] = 0;
+			tree["25"]["TextSize"] = 20;
+			tree["25"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["25"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
+			tree["25"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tree["25"]["BackgroundTransparency"] = 0.5;
+			tree["25"]["Size"] = UDim2.new(0, 100, 0, 40);
+			tree["25"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["25"]["Text"] = [[Yes]];
+			tree["25"]["Name"] = [[OptionOne]];
+			tree["25"]["Position"] = UDim2.new(0.06, 0, 0.59474, 0);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UICorner
+			tree["26"] = Instance.new("UICorner", tree["25"]);
+
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UIStroke
+			tree["27"] = Instance.new("UIStroke", tree["25"]);
+			tree["27"]["Thickness"] = 0.5;
+			tree["27"]["Color"] = Color3.fromRGB(101, 101, 101);
+			tree["27"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo
+			tree["28"] = Instance.new("TextButton", tree["1f"]);
+			tree["28"]["BorderSizePixel"] = 0;
+			tree["28"]["TextSize"] = 20;
+			tree["28"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["28"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
+			tree["28"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tree["28"]["BackgroundTransparency"] = 0.5;
+			tree["28"]["Size"] = UDim2.new(0, 100, 0, 40);
+			tree["28"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["28"]["Text"] = [[No]];
+			tree["28"]["Name"] = [[OptionTwo]];
+			tree["28"]["Position"] = UDim2.new(0.54, 0, 0.59474, 0);
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UICorner
+			tree["29"] = Instance.new("UICorner", tree["28"]);
+
+
+
+			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UIStroke
+			tree["2a"] = Instance.new("UIStroke", tree["28"]);
+			tree["2a"]["Thickness"] = 0.5;
+			tree["2a"]["Color"] = Color3.fromRGB(101, 101, 101);
+			tree["2a"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+		end
+
+		local UI = library["LynxeUILibrary"]
+		local ClosePromptUI = tree["1e"]
+
+		local OptionOne = tree["25"] -- yes
+		local OptionTwo = tree["28"] -- no
+
+		library:tween(ClosePromptUI, {BackgroundTransparency = 0.5})
+
+		NewConnection(OptionTwo, "Activated", function()
+			local cb = function()
+				ClosePromptUI.Parent = nil
+				ClosePromptUI:Destroy()
+			end
+
+			library:tween(tree["23"], {TextTransparency = 1})
+			library:tween(tree["24"], {TextTransparency = 1})
+
+			library:tween(tree["1f"], {BackgroundTransparency = 1})
+			library:tween(ClosePromptUI, {BackgroundTransparency = 1}, cb)
+		end)
+
+		NewConnection(OptionOne, "Activated", function()
+			UI.Parent = nil
+			UI:Destroy()
+			eraseConnections()
+		end)
+	end)
+	
+	
+	-- Discord button logic
+	NewConnection(tree["d"], "Activated", function()
+		local DiscordPromptUI = tree["c6"]
+		local UIstroke = tree["c8"]
+		
+		local CopyButton = tree["cc"]
+		
+		if DiscordPromptUI.Visible then
+			library:tween(UIstroke, {Transparency = 1})
+			library:tween(DiscordPromptUI, {BackgroundTransparency = 1}, function() DiscordPromptUI.Visible = false end)
+			
+		elseif not DiscordPromptUI.Visible then
+			DiscordPromptUI.Visible = true
+			
+			library:tween(UIstroke, {Transparency = 0})
+			library:tween(DiscordPromptUI, {BackgroundTransparency = 0.2})
+		end
+		
+		NewConnection(CopyButton, "Activated", function() -- copy to clipboard
+			
+			if options["LynxeUIPrompts"] then
+				library:Notify({
+					Title = "copied",
+					Info = "The invite link has been copied to your clipboard.",
+					Duration = 3,
+					Image = "rbxassetid://10709790644"
+				})
+			end
+			
+			task.spawn(function()
+				CopyButton.Image = "rbxassetid://10709790644"
+				task.wait(2)
+				CopyButton.Image = "rbxassetid://10709812159"
+			end)
+		end)
+	end)
+
+	
+	function tree:CreateHomeTab(options)
+		options = library:validate({
+			Name = "Home",
+			Icon = "rbxassetid://10723407389"
+		}, options or {})
+		
+		local tab = {
+			Hover = false,
+			Active = false
+		}
+		
+		-- new home button
+		do
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton
+			tab["17"] = Instance.new("Frame", tree["e"]);
+			tab["17"]["BorderSizePixel"] = 0;
+			tab["17"]["BackgroundColor3"] = Color3.fromRGB(16, 16, 16);
+			tab["17"]["Size"] = UDim2.new(0, 130, 0, 30);
+			tab["17"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["17"]["Name"] = [[TabButton]];
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.UICorner
+			tab["18"] = Instance.new("UICorner", tab["17"]);
+			tab["18"]["CornerRadius"] = UDim.new(0, 5);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Name
+			tab["19"] = Instance.new("TextLabel", tab["17"]);
+			tab["19"]["BorderSizePixel"] = 0;
+			tab["19"]["TextSize"] = 15;
+			tab["19"]["TextTransparency"] = 0.5;
+			tab["19"]["TextYAlignment"] = Enum.TextYAlignment.Top;
+			tab["19"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["19"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["19"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["19"]["BackgroundTransparency"] = 1;
+			tab["19"]["Size"] = UDim2.new(0, 80, 0, 16);
+			tab["19"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["19"]["Text"] = options["Name"];
+			tab["19"]["Name"] = [[Name]];
+			tab["19"]["Position"] = UDim2.new(0, 35, 0, 7);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Icon
+			tab["1a"] = Instance.new("ImageLabel", tab["17"]);
+			tab["1a"]["BorderSizePixel"] = 0;
+			tab["1a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1a"]["ImageTransparency"] = 0.5;
+			tab["1a"]["Image"] = options["Icon"];
+			tab["1a"]["Size"] = UDim2.new(0, 20, 0, 20);
+			tab["1a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1a"]["BackgroundTransparency"] = 1;
+			tab["1a"]["Name"] = [[Icon]];
+			tab["1a"]["Position"] = UDim2.new(0, 10, 0, 5);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Button
+			tab["1b"] = Instance.new("TextButton", tab["17"]);
+			tab["1b"]["BorderSizePixel"] = 0;
+			tab["1b"]["TextSize"] = 14;
+			tab["1b"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1b"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+			tab["1b"]["BackgroundTransparency"] = 1;
+			tab["1b"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tab["1b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1b"]["Text"] = [[]];
+			tab["1b"]["Name"] = [[Button]];
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Indicate
+			tab["1c"] = Instance.new("Frame", tab["17"]);
+			tab["1c"]["BorderSizePixel"] = 0;
+			tab["1c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1c"]["Size"] = UDim2.new(1, 0, 0, 1);
+			tab["1c"]["Position"] = UDim2.new(0, 0, 0, 30);
+			tab["1c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1c"]["Name"] = [[Indicate]];
+			tab["1c"]["BackgroundTransparency"] = 1;
+			tab["1c"]["AnchorPoint"] = Vector2.new(0, 0);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Indicate.UICorner
+			tab["1d"] = Instance.new("UICorner", tab["1c"]);
+			tab["1d"]["CornerRadius"] = UDim.new(0, 5);
+		end
+		
+		-- new home page
+		do 
+			-- StarterGui.UI.Window.MainContainer.HomeTab
+			tab["47"] = Instance.new("Frame", tree["45"]);
+			tab["47"]["BorderSizePixel"] = 0;
+			tab["47"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["47"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tab["47"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["47"]["Name"] = [[HomeTab]];
+			tab["47"]["BackgroundTransparency"] = 1;
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats
+			tab["48"] = Instance.new("Frame", tab["47"]);
+			tab["48"]["BorderSizePixel"] = 0;
+			tab["48"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+			tab["48"]["Size"] = UDim2.new(1, -30, 1, -170);
+			tab["48"]["Position"] = UDim2.new(0, 15, 0, 15);
+			tab["48"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["48"]["Name"] = [[ProfileStats]];
+			tab["48"]["BackgroundTransparency"] = 0.7;
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.UICorner
+			tab["49"] = Instance.new("UICorner", tab["48"]);
+			tab["49"]["CornerRadius"] = UDim.new(0, 20);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.UIStroke
+			tab["4a"] = Instance.new("UIStroke", tab["48"]);
+			tab["4a"]["Thickness"] = 0.5;
+			tab["4a"]["Color"] = Color3.fromRGB(101, 101, 101);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP
+			tab["4b"] = Instance.new("ImageLabel", tab["48"]);
+			tab["4b"]["BorderSizePixel"] = 0;
+			tab["4b"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+			tab["4b"]["Image"] = [[rbxasset://textures/ui/GuiImagePlaceholder.png]];
+			tab["4b"]["Size"] = UDim2.new(0, 100, 0, 100);
+			tab["4b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["4b"]["BackgroundTransparency"] = 0.5;
+			tab["4b"]["Name"] = [[PFP]];
+			tab["4b"]["Position"] = UDim2.new(1, -110, 1, -110);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP.UICorner
+			tab["4c"] = Instance.new("UICorner", tab["4b"]);
+			tab["4c"]["CornerRadius"] = UDim.new(1, 0);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP.UIStroke
+			tab["4d"] = Instance.new("UIStroke", tab["4b"]);
+			tab["4d"]["Thickness"] = 0.5;
+			tab["4d"]["Color"] = Color3.fromRGB(101, 101, 101);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Username
+			tab["4e"] = Instance.new("TextLabel", tab["48"]);
+			tab["4e"]["BorderSizePixel"] = 0;
+			tab["4e"]["TextSize"] = 20;
+			tab["4e"]["TextTransparency"] = 0.15;
+			tab["4e"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["4e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["4e"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["4e"]["BackgroundTransparency"] = 1;
+			tab["4e"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["4e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["4e"]["Text"] = [[Username]];
+			tab["4e"]["Name"] = [[Username]];
+			tab["4e"]["Position"] = UDim2.new(1, -270, 1, -105);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Age
+			tab["4f"] = Instance.new("TextLabel", tab["48"]);
+			tab["4f"]["BorderSizePixel"] = 0;
+			tab["4f"]["TextSize"] = 15;
+			tab["4f"]["TextTransparency"] = 0.15;
+			tab["4f"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["4f"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["4f"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["4f"]["BackgroundTransparency"] = 1;
+			tab["4f"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["4f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["4f"]["Text"] = [[Age: nil days]];
+			tab["4f"]["Name"] = [[Age]];
+			tab["4f"]["Position"] = UDim2.new(1, -270, 1, -83);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Frame
+			tab["50"] = Instance.new("Frame", tab["48"]);
+			tab["50"]["BorderSizePixel"] = 0;
+			tab["50"]["BackgroundColor3"] = Color3.fromRGB(101, 101, 101);
+			tab["50"]["Size"] = UDim2.new(1, -150, 1, -118);
+			tab["50"]["Position"] = UDim2.new(1, -255, 1, -55);
+			tab["50"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Executer
+			tab["51"] = Instance.new("TextLabel", tab["48"]);
+			tab["51"]["BorderSizePixel"] = 0;
+			tab["51"]["TextSize"] = 15;
+			tab["51"]["TextTransparency"] = 0.15;
+			tab["51"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["51"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["51"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["51"]["BackgroundTransparency"] = 1;
+			tab["51"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["51"]["Text"] = [[Executer:]];
+			tab["51"]["Name"] = [[Executer]];
+			tab["51"]["Position"] = UDim2.new(1, -270, 1, -50);
+
+
+			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Time
+			tab["52"] = Instance.new("TextLabel", tab["48"]);
+			tab["52"]["BorderSizePixel"] = 0;
+			tab["52"]["TextSize"] = 15;
+			tab["52"]["TextTransparency"] = 0.15;
+			tab["52"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["52"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["52"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["52"]["BackgroundTransparency"] = 1;
+			tab["52"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["52"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["52"]["Text"] = [[Time: 00:00]];
+			tab["52"]["Name"] = [[Time]];
+			tab["52"]["Position"] = UDim2.new(1, -270, 1, -30);
+		end
+		
+		-- methods, logic
+		do
+			function tab:Activate()
+				if not tab.Active then
+
+					if tree.CurrentTab ~= nil then
+						tree.CurrentTab:Deactivate()
+					end
+
+					tab.Active = true
+					library:tween(tab["19"], {TextTransparency = 0.15})
+					library:tween(tab["1a"], {ImageTransparency = 0.15})
+					library:tween(tab["1c"], {BackgroundTransparency = 0})
+					tab["47"].Visible = true
+
+					tree.CurrentTab = tab
+				end
+			end
+
+			function tab:Deactivate()
+				if tab.Active then
+					tab.Active = false
+					tab.Hover = false
+
+					library:tween(tab["19"], {TextTransparency = 0.5})
+					library:tween(tab["1a"], {ImageTransparency = 0.5})
+					library:tween(tab["1c"], {BackgroundTransparency = 1})
+					tab["47"].Visible = false
+				end
+			end
+
+			tab["17"].MouseEnter:Connect(function()
+				tab.Hover = true
+
+				if not tab.Active then
+					library:tween(tab["19"], {TextTransparency = 0.15})
+					library:tween(tab["1a"], {ImageTransparency = 0.15})
+				end
+			end)
+
+			tab["17"].MouseLeave:Connect(function()
+				tab.Hover = false
+
+				if not tab.Active then
+					library:tween(tab["19"], {TextTransparency = 0.5})
+					library:tween(tab["1a"], {ImageTransparency = 0.5})
+				end
+			end)
+
+			tab["1b"].Activated:Connect(function()
+				if tab.Hover then
+					tab:Activate()
+				end
+			end)
+
+			if tree.CurrentTab == nil then
+				tab:Activate()
+			end
+		end
+		
+		return tab
+	end
+	
+	
+	function tree:CreateTab(options)
+		options = library:validate({
+			Name = "Test Tab",
+			Icon = "rbxassetid://10709782497"
+		}, options or {})
+		
+		local tab = {
+			Hover = false,
+			Active = false
+		}
+		
+		
+		-- New tab button
+		do
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton
+			tab["17"] = Instance.new("Frame", tree["e"]);
+			tab["17"]["BorderSizePixel"] = 0;
+			tab["17"]["BackgroundColor3"] = Color3.fromRGB(16, 16, 16);
+			tab["17"]["Size"] = UDim2.new(0, 130, 0, 30);
+			tab["17"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["17"]["Name"] = [[TabButton]];
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.UICorner
+			tab["18"] = Instance.new("UICorner", tab["17"]);
+			tab["18"]["CornerRadius"] = UDim.new(0, 5);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Name
+			tab["19"] = Instance.new("TextLabel", tab["17"]);
+			tab["19"]["BorderSizePixel"] = 0;
+			tab["19"]["TextSize"] = 15;
+			tab["19"]["TextTransparency"] = 0.5;
+			tab["19"]["TextYAlignment"] = Enum.TextYAlignment.Top;
+			tab["19"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["19"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+			tab["19"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["19"]["BackgroundTransparency"] = 1;
+			tab["19"]["Size"] = UDim2.new(0, 80, 0, 16);
+			tab["19"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["19"]["Text"] = options["Name"];
+			tab["19"]["Name"] = [[Name]];
+			tab["19"]["Position"] = UDim2.new(0, 35, 0, 7);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Icon
+			tab["1a"] = Instance.new("ImageLabel", tab["17"]);
+			tab["1a"]["BorderSizePixel"] = 0;
+			tab["1a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1a"]["ImageTransparency"] = 0.5;
+			tab["1a"]["Image"] = options["Icon"];
+			tab["1a"]["Size"] = UDim2.new(0, 20, 0, 20);
+			tab["1a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1a"]["BackgroundTransparency"] = 1;
+			tab["1a"]["Name"] = [[Icon]];
+			tab["1a"]["Position"] = UDim2.new(0, 10, 0, 5);
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Button
+			tab["1b"] = Instance.new("TextButton", tab["17"]);
+			tab["1b"]["BorderSizePixel"] = 0;
+			tab["1b"]["TextSize"] = 14;
+			tab["1b"]["TextColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1b"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+			tab["1b"]["BackgroundTransparency"] = 1;
+			tab["1b"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tab["1b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1b"]["Text"] = [[]];
+			tab["1b"]["Name"] = [[Button]];
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Indicate
+			tab["1c"] = Instance.new("Frame", tab["17"]);
+			tab["1c"]["BorderSizePixel"] = 0;
+			tab["1c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["1c"]["Size"] = UDim2.new(1, 0, 0, 1);
+			tab["1c"]["Position"] = UDim2.new(0, 0, 0, 30);
+			tab["1c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["1c"]["Name"] = [[Indicate]];
+			tab["1c"]["BackgroundTransparency"] = 1;
+
+
+			-- StarterGui.UI.Window.TabButtonHolder.TabButton.Indicate.UICorner
+			tab["1d"] = Instance.new("UICorner", tab["1c"]);
+			tab["1d"]["CornerRadius"] = UDim.new(0, 5);
+		end
+		
+		-- New tab page
+		do			
+			-- StarterGui.UI.Window.MainContainer.PageTab
+			tab["53"] = Instance.new("ScrollingFrame", tree["45"]);
+			tab["53"]["Visible"] = false;
+			tab["53"]["Active"] = true;
+			tab["53"]["BorderSizePixel"] = 0;
+			tab["53"]["CanvasSize"] = UDim2.new(0, 0, 1.5, 0);
+			tab["53"]["Name"] = [[PageTab]];
+			tab["53"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tab["53"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tab["53"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tab["53"]["ScrollBarThickness"] = 2;
+			tab["53"]["BackgroundTransparency"] = 1;
+			
+
+			-- StarterGui.UI.Window.MainContainer.PageTab.UIListLayout
+			tab["54"] = Instance.new("UIListLayout", tab["53"]);
+			tab["54"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
+			tab["54"]["Padding"] = UDim.new(0, 20);
+			tab["54"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+
+
+			-- StarterGui.UI.Window.MainContainer.PageTab.UIPadding
+			tab["55"] = Instance.new("UIPadding", tab["53"]);
+			tab["55"]["PaddingTop"] = UDim.new(0, 1);
+			tab["55"]["PaddingRight"] = UDim.new(0, 1);
+			tab["55"]["PaddingLeft"] = UDim.new(0, 1);
+			tab["55"]["PaddingBottom"] = UDim.new(0, 1);
+		end
+		
+		-- methods, logic
+		do
+			function tab:Activate()
+				if not tab.Active then
+
+					if tree.CurrentTab ~= nil then
+						tree.CurrentTab:Deactivate()
+					end
+
+					tab.Active = true
+					library:tween(tab["19"], {TextTransparency = 0.15})
+					library:tween(tab["1a"], {ImageTransparency = 0.15})
+					library:tween(tab["1c"], {BackgroundTransparency = 0})
+					tab["53"].Visible = true
+
+					tree.CurrentTab = tab
+				end
+			end
+
+			function tab:Deactivate()
+				if tab.Active then
+					tab.Active = false
+					tab.Hover = false
+
+					library:tween(tab["19"], {TextTransparency = 0.5})
+					library:tween(tab["1a"], {ImageTransparency = 0.5})
+					library:tween(tab["1c"], {BackgroundTransparency = 1})
+					tab["53"].Visible = false
+				end
+			end
+
+			tab["17"].MouseEnter:Connect(function()
+				tab.Hover = true
+
+				if not tab.Active then
+					library:tween(tab["19"], {TextTransparency = 0.15})
+					library:tween(tab["1a"], {ImageTransparency = 0.15})
+				end
+			end)
+
+			tab["17"].MouseLeave:Connect(function()
+				tab.Hover = false
+
+				if not tab.Active then
+					library:tween(tab["19"], {TextTransparency = 0.5})
+					library:tween(tab["1a"], {ImageTransparency = 0.5})
+				end
+			end)
+
+			tab["1b"].Activated:Connect(function()
+				if tab.Hover then
+					tab:Activate()
+				end
+			end)
+
+			if tree.CurrentTab == nil then
+				tab:Activate()
+			end
+		end
+		
+		return tab
+	end
+	
+	return tree
+end
+
+local Window = library:CreateWindow({
+	Name = "Lynxe UI",
+	Icon = "rbxassetid://10709782497",
+
+	LoadingTitle = "Title",
+	LoadingDescription = "Title Tip",
+
+	LynxeUIPrompts = true,
+
+	Discord = {
+		Invite = "NoInvite"
+	}
+})
+
+local HomeTab = Window:CreateHomeTab()
+
+
+local tab1 =  Window:CreateTab({})
+local tab2 =  Window:CreateTab({})
