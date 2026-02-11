@@ -9,18 +9,13 @@ local UserInputService = game:GetService("UserInputService")
 
 
 -- Variables
+local player = Players.LocalPlayer
+
 local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
 local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
-
-local active = false
-
-local dragToggle = nil
-local dragSpeed = 0.25
-local dragStart = nil
-local startPos = nil
 
 
 -- Connections
@@ -41,6 +36,11 @@ end
 
 
 local library = {}
+library.IsMobile = false
+
+if UserInputService.TouchEnabled then 
+	library.IsMobile = true
+end
 
 library["LynxeUILibrary"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
 library["LynxeUILibrary"]["Name"] = "LynxeUILibrary";
@@ -76,9 +76,13 @@ function library:Notify(options)
 		Image = "rbxassetid://10723374276"
 	}, options or {})
 	
-	local Notifications = library["NotifyContainer"]:GetChildren()
 	local NotifyUI = { Current = nil, Previous = nil }
-	
+	local Notifications = library["NotifyContainer"]:GetChildren()
+
+	if #Notifications > 2 then
+		repeat task.wait() until #Notifications <= 2
+	end
+
 	-- create UI
 	do
 		-- StarterGui.ScreenGui.NotifyPrompt
@@ -207,6 +211,8 @@ function library:Notify(options)
 		NotifyUI["c"]["Position"] = UDim2.new(1, -224, 0, 3);
 	end
 	
+	local Notifications = library["NotifyContainer"]:GetChildren()
+	
 	for i, notification in ipairs(Notifications) do
 		local targetY = -10 - (i * 100)
 		library:tween(notification, {Position = UDim2.new(1, -10, 1, targetY)})
@@ -248,206 +254,566 @@ function library:CreateWindow(options)
 	}, options or {})
 	
 	local tree = {
-		CurrentTab = nil
-	}
+		CurrentTab = nil, 
+		UIactive = false,
+		
+		dragToggle = nil,
+		dragSpeed = 0.25,
+		dragStart = nil,
+		startPos = nil
+	}	
 	
-	-- StarterGui.UI
-	tree["1"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
-	tree["1"]["IgnoreGuiInset"] = true;
-	tree["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
-	tree["1"]["Name"] = [[UI]];
-	tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+	 -- Main Window
+	do
+		-- StarterGui.UI
+		tree["1"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
+		tree["1"]["IgnoreGuiInset"] = true;
+		tree["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
+		tree["1"]["Name"] = [[UI]];
+		tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
 
 
-	-- StarterGui.UI.Window
-	tree["2"] = Instance.new("Frame", tree["1"]);
-	tree["2"]["Visible"] = false;
-	tree["2"]["ZIndex"] = 3;
-	tree["2"]["BorderSizePixel"] = 0;
-	tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-	tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
-	tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
-	tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["2"]["Name"] = [[Window]];
-	tree["2"]["LayoutOrder"] = 3;
-	tree["2"]["BackgroundTransparency"] = 0.2;
+		-- StarterGui.UI.Window
+		tree["2"] = Instance.new("Frame", tree["1"]);
+		tree["2"]["Visible"] = tree["UIactive"];
+		tree["2"]["ZIndex"] = 3;
+		tree["2"]["BorderSizePixel"] = 0;
+		tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
+		tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
+		tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["2"]["Name"] = [[Window]];
+		tree["2"]["LayoutOrder"] = 3;
+		tree["2"]["BackgroundTransparency"] = 0.2;
 
 
-	-- StarterGui.UI.Window.UICorner
-	tree["3"] = Instance.new("UICorner", tree["2"]);
-	tree["3"]["CornerRadius"] = UDim.new(0.025, 8);
+		-- StarterGui.UI.Window.UICorner
+		tree["3"] = Instance.new("UICorner", tree["2"]);
+		tree["3"]["CornerRadius"] = UDim.new(0.025, 8);
+
+		-- StarterGui.UI.Window.UIStroke
+		tree["4"] = Instance.new("UIStroke", tree["2"]);
+
+		-- StarterGui.UI.Window.UISizeConstraint
+		tree["ce1"] = Instance.new("UISizeConstraint", tree["2"]);
+
+		-- StarterGui.UI.Window.UIAspectRatioConstraint
+		tree["d01"] = Instance.new("UIAspectRatioConstraint", tree["2"]);
+		tree["d01"]["AspectRatio"] = 1.43;
 
 
-	-- StarterGui.UI.Window.UIStroke
-	tree["4"] = Instance.new("UIStroke", tree["2"]);
+		-- StarterGui.UI.Window.DropShadowHolder
+		tree["5"] = Instance.new("Frame", tree["2"]);
+		tree["5"]["ZIndex"] = 0;
+		tree["5"]["BorderSizePixel"] = 0;
+		tree["5"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["5"]["Name"] = [[DropShadowHolder]];
+		tree["5"]["BackgroundTransparency"] = 1;
 
 
-	-- StarterGui.UI.Window.DropShadowHolder
-	tree["5"] = Instance.new("Frame", tree["2"]);
-	tree["5"]["ZIndex"] = 0;
-	tree["5"]["BorderSizePixel"] = 0;
-	tree["5"]["Size"] = UDim2.new(1, 0, 1, 0);
-	tree["5"]["Name"] = [[DropShadowHolder]];
-	tree["5"]["BackgroundTransparency"] = 1;
-
-
-	-- StarterGui.UI.Window.DropShadowHolder.DropShadow
-	tree["6"] = Instance.new("ImageLabel", tree["5"]);
-	tree["6"]["ZIndex"] = 0;
-	tree["6"]["BorderSizePixel"] = 0;
-	tree["6"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
-	tree["6"]["ScaleType"] = Enum.ScaleType.Slice;
-	tree["6"]["ImageTransparency"] = 0.3;
-	tree["6"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
-	tree["6"]["Image"] = [[rbxassetid://6014261993]];
-	tree["6"]["Size"] = UDim2.new(1, 47, 1, 47);
-	tree["6"]["BackgroundTransparency"] = 1;
-	tree["6"]["Name"] = [[DropShadow]];
-	tree["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+		-- StarterGui.UI.Window.DropShadowHolder.DropShadow
+		tree["6"] = Instance.new("ImageLabel", tree["5"]);
+		tree["6"]["ZIndex"] = 0;
+		tree["6"]["BorderSizePixel"] = 0;
+		tree["6"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		tree["6"]["ScaleType"] = Enum.ScaleType.Slice;
+		tree["6"]["ImageTransparency"] = 0.3;
+		tree["6"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		tree["6"]["Image"] = [[rbxassetid://6014261993]];
+		tree["6"]["Size"] = UDim2.new(1, 47, 1, 47);
+		tree["6"]["BackgroundTransparency"] = 1;
+		tree["6"]["Name"] = [[DropShadow]];
+		tree["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+	end
 	
-	-- StarterGui.UI.Window.Topbar
-	tree["7"] = Instance.new("Frame", tree["2"]);
-	tree["7"]["ZIndex"] = 3;
-	tree["7"]["BorderSizePixel"] = 0;
-	tree["7"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-	tree["7"]["Size"] = UDim2.new(1, 0, 0, 20);
-	tree["7"]["Position"] = UDim2.new(0, 0, 0, 10);
-	tree["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["7"]["Name"] = [[Topbar]];
-	tree["7"]["BackgroundTransparency"] = 1;
+	if library.IsMobile then
+		tree["2"].Size = tree["2"].Size - UDim2.new(0, 20, 0, 20)
+		
+		local DragTogSet = {
+			dragToggleT = nil,
+			dragSpeedT = 0.25,
+			dragStartT = nil,
+			startPosT = nil	
+		}
+		
+		-- Mobile toggle button
+		do
+			-- StarterGui.UI.ToggleUI
+			tree["e1"] = Instance.new("Frame", tree["1"]);
+			tree["e1"]["Visible"] = false;
+			tree["e1"]["ZIndex"] = 3;
+			tree["e1"]["BorderSizePixel"] = 0;
+			tree["e1"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+			tree["e1"]["Size"] = UDim2.new(0, 60, 0, 60);
+			tree["e1"]["Position"] = UDim2.new(0.90898, 0, 0.0747, 0);
+			tree["e1"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["e1"]["Name"] = [[ToggleUI]];
+			tree["e1"]["LayoutOrder"] = 3;
+			tree["e1"]["BackgroundTransparency"] = 0.2;
+
+			-- StarterGui.UI.ToggleUI.UICorner
+			tree["e2"] = Instance.new("UICorner", tree["e1"]);
+			tree["e2"]["CornerRadius"] = UDim.new(1, 0);
 
 
-	-- StarterGui.UI.Window.Topbar.Title
-	tree["8"] = Instance.new("TextLabel", tree["7"]);
-	tree["8"]["TextStrokeTransparency"] = 0.5;
-	tree["8"]["BorderSizePixel"] = 0;
-	tree["8"]["TextSize"] = 20;
-	tree["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
-	tree["8"]["TextTransparency"] = 0.15;
-	tree["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-	tree["8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["8"]["BackgroundTransparency"] = 1;
-	tree["8"]["Size"] = UDim2.new(0, 100, 0, 20);
-	tree["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["8"]["Text"] = options["Name"];
-	tree["8"]["Name"] = [[Title]];
-	tree["8"]["Position"] = UDim2.new(0, 40, 0, 0);
+			-- StarterGui.UI.ToggleUI.UIStroke
+			tree["e3"] = Instance.new("UIStroke", tree["e1"]);
+
+			-- StarterGui.UI.ToggleUI.Logo
+			tree["e4"] = Instance.new("ImageButton", tree["e1"]);
+			tree["e4"]["BorderSizePixel"] = 0;
+			tree["e4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["e4"]["Image"] = [[rbxassetid://10709782497]];
+			tree["e4"]["Size"] = UDim2.new(1, -30, 1, -30);
+			tree["e4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["e4"]["BackgroundTransparency"] = 1;
+			tree["e4"]["Name"] = [[Logo]];
+			tree["e4"]["Position"] = UDim2.new(0.25, 0, 0.25, 0);
+		end
+		
+		-- Drag logic
+		do
+			local UITogFrame = tree["e1"]
+
+			local function updateInput(input)
+				local delta = input.Position - DragTogSet.dragStart
+				local position = UDim2.new(DragTogSet.startPos.X.Scale, DragTogSet.startPos.X.Offset + delta.X, DragTogSet.startPos.Y.Scale, DragTogSet.startPos.Y.Offset + delta.Y)
+				game:GetService("TweenService"):Create(UITogFrame, TweenInfo.new(DragTogSet.dragSpeed), {Position = position}):Play()
+			end
+
+			UITogFrame.InputBegan:Connect(function(input)
+				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+					DragTogSet.dragToggle = true
+					DragTogSet.dragStart = input.Position
+					DragTogSet.startPos = UITogFrame.Position
+					input.Changed:Connect(function()
+						if input.UserInputState == Enum.UserInputState.End then
+							DragTogSet.dragToggle = false
+						end
+					end)
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+					if DragTogSet.dragToggle then
+						updateInput(input)
+					end
+				end
+			end)
+		end
+		
+		NewConnection(tree["e4"], "Activated", function()
+			if tree.UIactive then
+				library:tween(tree["2"], {BackgroundTransparency = 1}, function()
+					tree.UIactive = false
+				end)
+			elseif not tree.UIactive then
+				tree.UIactive = true
+				library:tween(tree["2"], {BackgroundTransparency = 0.2})
+			end
+		end)
+	end
+
+	-- Draggable Window logic
+	do
+		local UIFrame = tree["2"]
+
+		local function updateInput(input)
+			local delta = input.Position - tree.dragStart
+			local position = UDim2.new(tree.startPos.X.Scale, tree.startPos.X.Offset + delta.X, tree.startPos.Y.Scale, tree.startPos.Y.Offset + delta.Y)
+			game:GetService("TweenService"):Create(UIFrame, TweenInfo.new(tree.dragSpeed), {Position = position}):Play()
+		end
+
+		UIFrame.InputBegan:Connect(function(input)
+			if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+				tree.dragToggle = true
+				tree.dragStart = input.Position
+				tree.startPos = UIFrame.Position
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						tree.dragToggle = false
+					end
+				end)
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				if tree.dragToggle then
+					updateInput(input)
+				end
+			end
+		end)
+	end
+
+	-- topbar
+	do
+		-- StarterGui.UI.Window.Topbar
+		tree["7"] = Instance.new("Frame", tree["2"]);
+		tree["7"]["ZIndex"] = 3;
+		tree["7"]["BorderSizePixel"] = 0;
+		tree["7"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		tree["7"]["Size"] = UDim2.new(1, 0, 0, 20);
+		tree["7"]["Position"] = UDim2.new(0, 0, 0, 10);
+		tree["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["7"]["Name"] = [[Topbar]];
+		tree["7"]["BackgroundTransparency"] = 1;
 
 
-	-- StarterGui.UI.Window.Topbar.Logo
-	tree["9"] = Instance.new("ImageLabel", tree["7"]);
-	tree["9"]["BorderSizePixel"] = 0;
-	tree["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["9"]["ImageTransparency"] = 0.3;
-	tree["9"]["Image"] = options["Icon"];
-	tree["9"]["Size"] = UDim2.new(0, 20, 0, 20);
-	tree["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["9"]["BackgroundTransparency"] = 1;
-	tree["9"]["Name"] = [[Logo]];
-	tree["9"]["Position"] = UDim2.new(0, 13, 0, 0);
+		-- StarterGui.UI.Window.Topbar.Title
+		tree["8"] = Instance.new("TextLabel", tree["7"]);
+		tree["8"]["TextStrokeTransparency"] = 0.5;
+		tree["8"]["BorderSizePixel"] = 0;
+		tree["8"]["TextSize"] = 20;
+		tree["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		tree["8"]["TextTransparency"] = 0.15;
+		tree["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["8"]["BackgroundTransparency"] = 1;
+		tree["8"]["Size"] = UDim2.new(0, 100, 0, 20);
+		tree["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["8"]["Text"] = options["Name"];
+		tree["8"]["Name"] = [[Title]];
+		tree["8"]["Position"] = UDim2.new(0, 40, 0, 0);
 
 
-	-- StarterGui.UI.Window.Topbar.CloseButton
-	tree["a"] = Instance.new("ImageButton", tree["7"]);
-	tree["a"]["BorderSizePixel"] = 0;
-	tree["a"]["ImageTransparency"] = 0.3;
-	tree["a"]["BackgroundTransparency"] = 1;
-	tree["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["a"]["AnchorPoint"] = Vector2.new(1, 0);
-	tree["a"]["Image"] = [[rbxassetid://10747384394]];
-	tree["a"]["Size"] = UDim2.new(0, 20, 0, 20);
-	tree["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["a"]["Name"] = [[CloseButton]];
-	tree["a"]["Position"] = UDim2.new(1, -10, 0, 0);
+		-- StarterGui.UI.Window.Topbar.Logo
+		tree["9"] = Instance.new("ImageLabel", tree["7"]);
+		tree["9"]["BorderSizePixel"] = 0;
+		tree["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["9"]["ImageTransparency"] = 0.3;
+		tree["9"]["Image"] = options["Icon"];
+		tree["9"]["Size"] = UDim2.new(0, 20, 0, 20);
+		tree["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["9"]["BackgroundTransparency"] = 1;
+		tree["9"]["Name"] = [[Logo]];
+		tree["9"]["Position"] = UDim2.new(0, 13, 0, 0);
 
 
-	-- StarterGui.UI.Window.Topbar.SettingsButton
-	tree["b"] = Instance.new("ImageButton", tree["7"]);
-	tree["b"]["BorderSizePixel"] = 0;
-	tree["b"]["ImageTransparency"] = 0.3;
-	tree["b"]["BackgroundTransparency"] = 1;
-	tree["b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["b"]["AnchorPoint"] = Vector2.new(1, 0);
-	tree["b"]["Image"] = [[rbxassetid://10723415494]];
-	tree["b"]["Size"] = UDim2.new(0, 20, 0, 20);
-	tree["b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["b"]["Name"] = [[SettingsButton]];
-	tree["b"]["Position"] = UDim2.new(1, -35, 0, 0);
+		-- StarterGui.UI.Window.Topbar.CloseButton
+		tree["a"] = Instance.new("ImageButton", tree["7"]);
+		tree["a"]["BorderSizePixel"] = 0;
+		tree["a"]["ImageTransparency"] = 0.3;
+		tree["a"]["BackgroundTransparency"] = 1;
+		tree["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["a"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["a"]["Image"] = [[rbxassetid://10747384394]];
+		tree["a"]["Size"] = UDim2.new(0, 20, 0, 20);
+		tree["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["a"]["Name"] = [[CloseButton]];
+		tree["a"]["Position"] = UDim2.new(1, -10, 0, 0);
 
 
-	-- StarterGui.UI.Window.Topbar.Version
-	tree["c"] = Instance.new("TextLabel", tree["7"]);
-	tree["c"]["TextStrokeTransparency"] = 0.5;
-	tree["c"]["BorderSizePixel"] = 0;
-	tree["c"]["TextSize"] = 15;
-	tree["c"]["TextTransparency"] = 0.5;
-	tree["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["c"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-	tree["c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["c"]["BackgroundTransparency"] = 1;
-	tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
-	tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
-	tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["c"]["Text"] = [[Ver. 0.0.1]];
-	tree["c"]["Name"] = [[Version]];
-	tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
+		-- StarterGui.UI.Window.Topbar.SettingsButton
+		tree["b"] = Instance.new("ImageButton", tree["7"]);
+		tree["b"]["BorderSizePixel"] = 0;
+		tree["b"]["ImageTransparency"] = 0.3;
+		tree["b"]["BackgroundTransparency"] = 1;
+		tree["b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["b"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["b"]["Image"] = [[rbxassetid://10723415494]];
+		tree["b"]["Size"] = UDim2.new(0, 20, 0, 20);
+		tree["b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["b"]["Name"] = [[SettingsButton]];
+		tree["b"]["Position"] = UDim2.new(1, -35, 0, 0);
 
 
-	-- StarterGui.UI.Window.Topbar.DiscordButton
-	tree["d"] = Instance.new("ImageButton", tree["7"]);
-	tree["d"]["BorderSizePixel"] = 0;
-	tree["d"]["ImageTransparency"] = 0.3;
-	tree["d"]["BackgroundTransparency"] = 1;
-	tree["d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["d"]["AnchorPoint"] = Vector2.new(1, 0);
-	tree["d"]["Image"] = [[rbxassetid://117327414436896]];
-	tree["d"]["Size"] = UDim2.new(0, 20, 0, 20);
-	tree["d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["d"]["Name"] = [[DiscordButton]];
-	tree["d"]["Position"] = UDim2.new(1, -63, 0, 0);
+		-- StarterGui.UI.Window.Topbar.Version
+		tree["c"] = Instance.new("TextLabel", tree["7"]);
+		tree["c"]["TextStrokeTransparency"] = 0.5;
+		tree["c"]["BorderSizePixel"] = 0;
+		tree["c"]["TextSize"] = 15;
+		tree["c"]["TextTransparency"] = 0.5;
+		tree["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["c"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		tree["c"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["c"]["BackgroundTransparency"] = 1;
+		tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
+		tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["c"]["Text"] = [[Ver. 0.0.1]];
+		tree["c"]["Name"] = [[Version]];
+		tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
+
+
+		-- StarterGui.UI.Window.Topbar.DiscordButton
+		tree["d"] = Instance.new("ImageButton", tree["7"]);
+		tree["d"]["BorderSizePixel"] = 0;
+		tree["d"]["ImageTransparency"] = 0.3;
+		tree["d"]["BackgroundTransparency"] = 1;
+		tree["d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["d"]["AnchorPoint"] = Vector2.new(1, 0);
+		tree["d"]["Image"] = [[rbxassetid://117327414436896]];
+		tree["d"]["Size"] = UDim2.new(0, 20, 0, 20);
+		tree["d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["d"]["Name"] = [[DiscordButton]];
+		tree["d"]["Position"] = UDim2.new(1, -63, 0, 0);
+	end
 	
-	-- StarterGui.UI.Window.TabButtonHolder
-	tree["e"] = Instance.new("ScrollingFrame", tree["2"]);
-	tree["e"]["Active"] = true;
-	tree["e"]["ScrollingDirection"] = Enum.ScrollingDirection.Y;
-	tree["e"]["BorderSizePixel"] = 0;
-	tree["e"]["ScrollingEnabled"] = false;
-	tree["e"]["Name"] = [[TabButtonHolder]];
-	tree["e"]["ScrollBarImageTransparency"] = 1;
-	tree["e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-	tree["e"]["AutomaticCanvasSize"] = Enum.AutomaticSize.Y;
-	tree["e"]["Size"] = UDim2.new(0, 147, 0, 297);
-	tree["e"]["ScrollBarImageColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["e"]["Position"] = UDim2.new(0, 10, 0, 40);
-	tree["e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["e"]["ScrollBarThickness"] = 1;
-	tree["e"]["BackgroundTransparency"] = 1;
+	-- topbar logic
+	do 
+		-- Closing logic
+		NewConnection(tree["a"], "Activated", function()
+			if tree["1e"] then tree["1e"]:Destroy() end -- prevent UI cloning spam
+
+			-- close prompt
+			do
+				-- StarterGui.UI.Window.ClosePrompt
+				tree["1e"] = Instance.new("Frame", tree["2"]);
+				tree["1e"]["Visible"] = true;
+				tree["1e"]["ZIndex"] = 3;
+				tree["1e"]["BorderSizePixel"] = 0;
+				tree["1e"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["1e"]["Size"] = UDim2.new(1, 0, 1, 0);
+				tree["1e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["1e"]["Name"] = [[ClosePrompt]];
+				tree["1e"]["BackgroundTransparency"] = 1;
 
 
-	-- StarterGui.UI.Window.TabButtonHolder.UIListLayout
-	tree["f"] = Instance.new("UIListLayout", tree["e"]);
-	tree["f"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
-	tree["f"]["Padding"] = UDim.new(0, 10);
-	tree["f"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+				-- StarterGui.UI.Window.ClosePrompt.UICorner
+				tree["1g"] = Instance.new("UICorner", tree["1e"]);
+				tree["1g"]["CornerRadius"] = UDim.new(0.025, 8);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt
+				tree["1f"] = Instance.new("Frame", tree["1e"]);
+				tree["1f"]["BorderSizePixel"] = 0;
+				tree["1f"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+				tree["1f"]["Size"] = UDim2.new(0, 250, 0, 162);
+				tree["1f"]["Position"] = UDim2.new(0.25, 0, 0.26, 0);
+				tree["1f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["1f"]["Name"] = [[Prompt]];
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.UICorner
+				tree["20"] = Instance.new("UICorner", tree["1f"]);
+
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.UIGradient
+				tree["21"] = Instance.new("UIGradient", tree["1f"]);
+				tree["21"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),ColorSequenceKeypoint.new(0.107, Color3.fromRGB(83, 83, 83)),ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))};
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.UIStroke
+				tree["22"] = Instance.new("UIStroke", tree["1f"]);
+				tree["22"]["Thickness"] = 0.5;
+				tree["22"]["Color"] = Color3.fromRGB(51, 51, 51);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPrompt
+				tree["23"] = Instance.new("TextLabel", tree["1f"]);
+				tree["23"]["TextWrapped"] = true;
+				tree["23"]["BorderSizePixel"] = 0;
+				tree["23"]["TextSize"] = 20;
+				tree["23"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["23"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+				tree["23"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				tree["23"]["BackgroundTransparency"] = 1;
+				tree["23"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
+				tree["23"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["23"]["Text"] = [[( Close UI )]];
+				tree["23"]["Name"] = [[TextPrompt]];
+				tree["23"]["Position"] = UDim2.new(0, 0, 0.12105, 0);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPromptTwo
+				tree["24"] = Instance.new("TextLabel", tree["1f"]);
+				tree["24"]["TextWrapped"] = true;
+				tree["24"]["BorderSizePixel"] = 0;
+				tree["24"]["TextSize"] = 20;
+				tree["24"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["24"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+				tree["24"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				tree["24"]["BackgroundTransparency"] = 1;
+				tree["24"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
+				tree["24"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["24"]["Text"] = [[Are you sure?]];
+				tree["24"]["Name"] = [[TextPromptTwo]];
+				tree["24"]["Position"] = UDim2.new(0, 0, 0.32105, 0);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne
+				tree["25"] = Instance.new("TextButton", tree["1f"]);
+				tree["25"]["BorderSizePixel"] = 0;
+				tree["25"]["TextSize"] = 20;
+				tree["25"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				tree["25"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
+				tree["25"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+				tree["25"]["BackgroundTransparency"] = 0.5;
+				tree["25"]["Size"] = UDim2.new(0, 100, 0, 40);
+				tree["25"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["25"]["Text"] = [[Yes]];
+				tree["25"]["Name"] = [[OptionOne]];
+				tree["25"]["Position"] = UDim2.new(0.06, 0, 0.59474, 0);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UICorner
+				tree["26"] = Instance.new("UICorner", tree["25"]);
+
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UIStroke
+				tree["27"] = Instance.new("UIStroke", tree["25"]);
+				tree["27"]["Thickness"] = 0.5;
+				tree["27"]["Color"] = Color3.fromRGB(101, 101, 101);
+				tree["27"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo
+				tree["28"] = Instance.new("TextButton", tree["1f"]);
+				tree["28"]["BorderSizePixel"] = 0;
+				tree["28"]["TextSize"] = 20;
+				tree["28"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				tree["28"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
+				tree["28"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+				tree["28"]["BackgroundTransparency"] = 0.5;
+				tree["28"]["Size"] = UDim2.new(0, 100, 0, 40);
+				tree["28"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				tree["28"]["Text"] = [[No]];
+				tree["28"]["Name"] = [[OptionTwo]];
+				tree["28"]["Position"] = UDim2.new(0.54, 0, 0.59474, 0);
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UICorner
+				tree["29"] = Instance.new("UICorner", tree["28"]);
+
+
+
+				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UIStroke
+				tree["2a"] = Instance.new("UIStroke", tree["28"]);
+				tree["2a"]["Thickness"] = 0.5;
+				tree["2a"]["Color"] = Color3.fromRGB(101, 101, 101);
+				tree["2a"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+			end
+
+			local UI = library["LynxeUILibrary"]
+			local ClosePromptUI = tree["1e"]
+
+			local OptionOne = tree["25"] -- yes
+			local OptionTwo = tree["28"] -- no
+
+			library:tween(ClosePromptUI, {BackgroundTransparency = 0.5})
+
+			NewConnection(OptionTwo, "Activated", function()
+				local cb = function()
+					ClosePromptUI.Parent = nil
+					ClosePromptUI:Destroy()
+				end
+
+				library:tween(tree["23"], {TextTransparency = 1})
+				library:tween(tree["24"], {TextTransparency = 1})
+
+				library:tween(tree["1f"], {BackgroundTransparency = 1})
+				library:tween(ClosePromptUI, {BackgroundTransparency = 1}, cb)
+			end)
+
+			NewConnection(OptionOne, "Activated", function()
+				UI.Parent = nil
+				UI:Destroy()
+				eraseConnections()
+			end)
+		end)
+
+		-- Discord button logic
+		NewConnection(tree["d"], "Activated", function()
+			local DiscordPromptUI = tree["c6"]
+			local UIstroke = tree["c8"]
+
+			local CopyButton = tree["cc"]
+
+			if DiscordPromptUI.Visible then
+				library:tween(UIstroke, {Transparency = 1})
+				library:tween(DiscordPromptUI, {BackgroundTransparency = 1}, function() DiscordPromptUI.Visible = false end)
+
+			elseif not DiscordPromptUI.Visible then
+				DiscordPromptUI.Visible = true
+
+				library:tween(UIstroke, {Transparency = 0})
+				library:tween(DiscordPromptUI, {BackgroundTransparency = 0.2})
+			end
+
+			NewConnection(CopyButton, "Activated", function() -- copy to clipboard
+
+				if options["LynxeUIPrompts"] then
+					library:Notify({
+						Title = "copied",
+						Info = "The invite link has been copied to your clipboard.",
+						Duration = 3,
+						Image = "rbxassetid://10709790644"
+					})
+				end
+
+				task.spawn(function()
+					CopyButton.Image = "rbxassetid://10709790644"
+					task.wait(2)
+					CopyButton.Image = "rbxassetid://10709812159"
+				end)
+			end)
+		end)
+		
+		-- hovering logic
+		do
+			local topbarButtons = { tree["a"], tree["b"], tree["d"] }
+			
+			for _, button in pairs(topbarButtons) do
+				NewConnection(button, "MouseEnter", function()
+					library:tween(button, {ImageTransparency = 0.05})
+				end)
+				
+				NewConnection(button, "MouseLeave", function()
+					library:tween(button, {ImageTransparency = 0.3})
+				end)
+			end
+		end
+	end
 	
-	
-	-- StarterGui.UI.Window.MainContainer
-	tree["45"] = Instance.new("Frame", tree["2"]);
-	tree["45"]["BorderSizePixel"] = 0;
-	tree["45"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
-	tree["45"]["ClipsDescendants"] = true;
-	tree["45"]["Size"] = UDim2.new(1, -190, 1, -60);
-	tree["45"]["Position"] = UDim2.new(0, 170, 0, 40);
-	tree["45"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-	tree["45"]["Name"] = [[MainContainer]];
-	tree["45"]["BackgroundTransparency"] = 1;
+	-- containers
+	do
+		-- StarterGui.UI.Window.TabButtonHolder
+		tree["e"] = Instance.new("ScrollingFrame", tree["2"]);
+		tree["e"]["Active"] = true;
+		tree["e"]["ScrollingDirection"] = Enum.ScrollingDirection.Y;
+		tree["e"]["BorderSizePixel"] = 0;
+		tree["e"]["ScrollingEnabled"] = false;
+		tree["e"]["Name"] = [[TabButtonHolder]];
+		tree["e"]["ScrollBarImageTransparency"] = 1;
+		tree["e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		tree["e"]["AutomaticCanvasSize"] = Enum.AutomaticSize.Y;
+		tree["e"]["Size"] = UDim2.new(0, 147, 0, 297);
+		tree["e"]["ScrollBarImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["e"]["Position"] = UDim2.new(0, 10, 0, 40);
+		tree["e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["e"]["ScrollBarThickness"] = 1;
+		tree["e"]["BackgroundTransparency"] = 1;
 
 
-	-- StarterGui.UI.Window.MainContainer.UICorner
-	tree["46"] = Instance.new("UICorner", tree["45"]);
-	tree["46"]["CornerRadius"] = UDim.new(0, 5);
+		-- StarterGui.UI.Window.TabButtonHolder.UIListLayout
+		tree["f"] = Instance.new("UIListLayout", tree["e"]);
+		tree["f"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
+		tree["f"]["Padding"] = UDim.new(0, 10);
+		tree["f"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+
+
+		-- StarterGui.UI.Window.MainContainer
+		tree["45"] = Instance.new("Frame", tree["2"]);
+		tree["45"]["BorderSizePixel"] = 0;
+		tree["45"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+		tree["45"]["ClipsDescendants"] = true;
+		tree["45"]["Size"] = UDim2.new(1, -190, 1, -60);
+		tree["45"]["Position"] = UDim2.new(0, 170, 0, 40);
+		tree["45"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["45"]["Name"] = [[MainContainer]];
+		tree["45"]["BackgroundTransparency"] = 1;
+
+
+		-- StarterGui.UI.Window.MainContainer.UICorner
+		tree["46"] = Instance.new("UICorner", tree["45"]);
+		tree["46"]["CornerRadius"] = UDim.new(0, 5);
+	end
 	
 	-- disord prompt UI
 	do
@@ -545,16 +911,9 @@ function library:CreateWindow(options)
 		tree["2b"]["Name"] = [[SettingsPage]];
 		tree["2b"]["BackgroundTransparency"] = 1; -- 0.05
 
-
 		-- StarterGui.UI.Window.SettingsPage.UICorner
 		tree["2c"] = Instance.new("UICorner", tree["2b"]);
 		tree["2c"]["CornerRadius"] = UDim.new(0, 15);
-
-
-		-- StarterGui.UI.Window.SettingsPage.UIStroke
-		tree["2e"] = Instance.new("UIStroke", tree["2b"]);
-		tree["2e"]["Thickness"] = 0.5;
-		tree["2e"]["Color"] = Color3.fromRGB(101, 101, 101);
 
 
 		-- StarterGui.UI.Window.SettingsPage.CloseButton
@@ -782,6 +1141,48 @@ function library:CreateWindow(options)
 		tree["44"]["Position"] = UDim2.new(0, 20, 0, 10);
 	end
 	
+	-- Settings page logic
+	do
+		NewConnection(tree["b"], "Activated", function()
+			local SettingsPage = tree["2b"]
+			local CloseButton = tree["2f"]
+
+			local navigation = tree["e"]
+			local Pages = tree["45"]
+			local topbar = tree["7"]
+
+			SettingsPage.Visible = true
+
+			navigation.Visible = false
+			topbar.Visible = false
+			Pages.Visible = false
+
+			library:tween(SettingsPage, {BackgroundTransparency = 0.85})
+			
+			NewConnection(CloseButton, "MouseEnter", function()
+				library:tween(CloseButton, {ImageTransparency = 0.05})
+			end)
+
+			NewConnection(CloseButton, "MouseLeave", function()
+				library:tween(CloseButton, {ImageTransparency = 0.3})
+			end)
+			
+			NewConnection(CloseButton, "Activated", function()
+				library:tween(SettingsPage, {BackgroundTransparency = 1}, function()
+					navigation.Visible = true
+					topbar.Visible = true
+					Pages.Visible = true
+
+					SettingsPage.Visible = false
+				end)
+			end)
+		end)
+
+
+
+	end
+	
+	
 	-- loading window
 	do
 		-- StarterGui.UI.LoadingWindow
@@ -944,9 +1345,9 @@ function library:CreateWindow(options)
 		tree["d8"]["Position"] = UDim2.new(0, (tree["cd"].Size.X.Offset / 2) , 0, 155);
 		tree["d8"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
 	end
-	
+
 	task.wait(1)
-	
+
 	-- UI loading
 	local function loadUI()
 		task.spawn(function()
@@ -997,277 +1398,7 @@ function library:CreateWindow(options)
 		end
 	end
 	loadUI()
-	
-	
-	-- Draggable Window logic
-	local UIFrame = tree["2"]
-	
-	local function updateInput(input)
-		local delta = input.Position - dragStart
-		local position = UDim2.new(startPos.X.Scale,startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		game:GetService("TweenService"):Create(UIFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-	end
-
-	UIFrame.InputBegan:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-			dragToggle = true
-			dragStart = input.Position
-			startPos = UIFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false
-				end
-			end)
-		end
-	end)
-
-	UserInputService.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			if dragToggle then
-				updateInput(input)
-			end
-		end
-	end)
-	
-	-- Settings page logic
-	do
-		NewConnection(tree["b"], "Activated", function()
-			local SettingsPage = tree["2b"]
-			local CloseButton = tree["2f"]
-			
-			local navigation = tree["e"]
-			local Pages = tree["45"]
-			local topbar = tree["7"]
-
-			tree["b"].Active = false
-			SettingsPage.Visible = true
-			
-			navigation.Visible = false
-			topbar.Visible = false
-			Pages.Visible = false
-			
-			library:tween(SettingsPage, {BackgroundTransparency = 0.85})
-			library:tween()
-			library:tween(tree["2e"], {Transparency = 0})
-
-			NewConnection(CloseButton, "Activated", function()
-				library:tween(SettingsPage, {BackgroundTransparency = 1}, function()
-					tree["b"].Active = true
-					navigation.Visible = true
-					topbar.Visible = true
-					Pages.Visible = true
-					
-					SettingsPage.Visible = false
-				end)
-			end)
-		end)
 		
-		
-		
-	end
-	
-	
-	-- Closing logic
-	NewConnection(tree["a"], "Activated", function()
-		if tree["1e"] then tree["1e"]:Destroy() end -- prevent UI cloning spam
-
-		-- close prompt
-		do
-			-- StarterGui.UI.Window.ClosePrompt
-			tree["1e"] = Instance.new("Frame", tree["2"]);
-			tree["1e"]["Visible"] = true;
-			tree["1e"]["ZIndex"] = 3;
-			tree["1e"]["BorderSizePixel"] = 0;
-			tree["1e"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["1e"]["Size"] = UDim2.new(1, 0, 1, 0);
-			tree["1e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["1e"]["Name"] = [[ClosePrompt]];
-			tree["1e"]["BackgroundTransparency"] = 1;
-
-
-			-- StarterGui.UI.Window.ClosePrompt.UICorner
-			tree["1g"] = Instance.new("UICorner", tree["1e"]);
-			tree["1g"]["CornerRadius"] = UDim.new(0.025, 8);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt
-			tree["1f"] = Instance.new("Frame", tree["1e"]);
-			tree["1f"]["BorderSizePixel"] = 0;
-			tree["1f"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
-			tree["1f"]["Size"] = UDim2.new(0, 250, 0, 162);
-			tree["1f"]["Position"] = UDim2.new(0.25, 0, 0.26, 0);
-			tree["1f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["1f"]["Name"] = [[Prompt]];
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.UICorner
-			tree["20"] = Instance.new("UICorner", tree["1f"]);
-
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.UIGradient
-			tree["21"] = Instance.new("UIGradient", tree["1f"]);
-			tree["21"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),ColorSequenceKeypoint.new(0.107, Color3.fromRGB(83, 83, 83)),ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))};
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.UIStroke
-			tree["22"] = Instance.new("UIStroke", tree["1f"]);
-			tree["22"]["Thickness"] = 0.5;
-			tree["22"]["Color"] = Color3.fromRGB(51, 51, 51);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPrompt
-			tree["23"] = Instance.new("TextLabel", tree["1f"]);
-			tree["23"]["TextWrapped"] = true;
-			tree["23"]["BorderSizePixel"] = 0;
-			tree["23"]["TextSize"] = 20;
-			tree["23"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["23"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
-			tree["23"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-			tree["23"]["BackgroundTransparency"] = 1;
-			tree["23"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
-			tree["23"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["23"]["Text"] = [[( Close UI )]];
-			tree["23"]["Name"] = [[TextPrompt]];
-			tree["23"]["Position"] = UDim2.new(0, 0, 0.12105, 0);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.TextPromptTwo
-			tree["24"] = Instance.new("TextLabel", tree["1f"]);
-			tree["24"]["TextWrapped"] = true;
-			tree["24"]["BorderSizePixel"] = 0;
-			tree["24"]["TextSize"] = 20;
-			tree["24"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["24"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
-			tree["24"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-			tree["24"]["BackgroundTransparency"] = 1;
-			tree["24"]["Size"] = UDim2.new(1, 0, -0.29474, 86);
-			tree["24"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["24"]["Text"] = [[Are you sure?]];
-			tree["24"]["Name"] = [[TextPromptTwo]];
-			tree["24"]["Position"] = UDim2.new(0, 0, 0.32105, 0);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne
-			tree["25"] = Instance.new("TextButton", tree["1f"]);
-			tree["25"]["BorderSizePixel"] = 0;
-			tree["25"]["TextSize"] = 20;
-			tree["25"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-			tree["25"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
-			tree["25"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
-			tree["25"]["BackgroundTransparency"] = 0.5;
-			tree["25"]["Size"] = UDim2.new(0, 100, 0, 40);
-			tree["25"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["25"]["Text"] = [[Yes]];
-			tree["25"]["Name"] = [[OptionOne]];
-			tree["25"]["Position"] = UDim2.new(0.06, 0, 0.59474, 0);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UICorner
-			tree["26"] = Instance.new("UICorner", tree["25"]);
-
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionOne.UIStroke
-			tree["27"] = Instance.new("UIStroke", tree["25"]);
-			tree["27"]["Thickness"] = 0.5;
-			tree["27"]["Color"] = Color3.fromRGB(101, 101, 101);
-			tree["27"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo
-			tree["28"] = Instance.new("TextButton", tree["1f"]);
-			tree["28"]["BorderSizePixel"] = 0;
-			tree["28"]["TextSize"] = 20;
-			tree["28"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-			tree["28"]["BackgroundColor3"] = Color3.fromRGB(31, 31, 31);
-			tree["28"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
-			tree["28"]["BackgroundTransparency"] = 0.5;
-			tree["28"]["Size"] = UDim2.new(0, 100, 0, 40);
-			tree["28"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tree["28"]["Text"] = [[No]];
-			tree["28"]["Name"] = [[OptionTwo]];
-			tree["28"]["Position"] = UDim2.new(0.54, 0, 0.59474, 0);
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UICorner
-			tree["29"] = Instance.new("UICorner", tree["28"]);
-
-
-
-			-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UIStroke
-			tree["2a"] = Instance.new("UIStroke", tree["28"]);
-			tree["2a"]["Thickness"] = 0.5;
-			tree["2a"]["Color"] = Color3.fromRGB(101, 101, 101);
-			tree["2a"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
-		end
-
-		local UI = library["LynxeUILibrary"]
-		local ClosePromptUI = tree["1e"]
-
-		local OptionOne = tree["25"] -- yes
-		local OptionTwo = tree["28"] -- no
-
-		library:tween(ClosePromptUI, {BackgroundTransparency = 0.5})
-
-		NewConnection(OptionTwo, "Activated", function()
-			local cb = function()
-				ClosePromptUI.Parent = nil
-				ClosePromptUI:Destroy()
-			end
-
-			library:tween(tree["23"], {TextTransparency = 1})
-			library:tween(tree["24"], {TextTransparency = 1})
-
-			library:tween(tree["1f"], {BackgroundTransparency = 1})
-			library:tween(ClosePromptUI, {BackgroundTransparency = 1}, cb)
-		end)
-
-		NewConnection(OptionOne, "Activated", function()
-			UI.Parent = nil
-			UI:Destroy()
-			eraseConnections()
-		end)
-	end)
-	
-	
-	-- Discord button logic
-	NewConnection(tree["d"], "Activated", function()
-		local DiscordPromptUI = tree["c6"]
-		local UIstroke = tree["c8"]
-		
-		local CopyButton = tree["cc"]
-		
-		if DiscordPromptUI.Visible then
-			library:tween(UIstroke, {Transparency = 1})
-			library:tween(DiscordPromptUI, {BackgroundTransparency = 1}, function() DiscordPromptUI.Visible = false end)
-			
-		elseif not DiscordPromptUI.Visible then
-			DiscordPromptUI.Visible = true
-			
-			library:tween(UIstroke, {Transparency = 0})
-			library:tween(DiscordPromptUI, {BackgroundTransparency = 0.2})
-		end
-		
-		NewConnection(CopyButton, "Activated", function() -- copy to clipboard
-			
-			if options["LynxeUIPrompts"] then
-				library:Notify({
-					Title = "copied",
-					Info = "The invite link has been copied to your clipboard.",
-					Duration = 3,
-					Image = "rbxassetid://10709790644"
-				})
-			end
-			
-			task.spawn(function()
-				CopyButton.Image = "rbxassetid://10709790644"
-				task.wait(2)
-				CopyButton.Image = "rbxassetid://10709812159"
-			end)
-		end)
-	end)
-
 	
 	function tree:CreateHomeTab(options)
 		options = library:validate({
@@ -1395,7 +1526,7 @@ function library:CreateWindow(options)
 			tab["4b"] = Instance.new("ImageLabel", tab["48"]);
 			tab["4b"]["BorderSizePixel"] = 0;
 			tab["4b"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
-			tab["4b"]["Image"] = [[rbxasset://textures/ui/GuiImagePlaceholder.png]];
+			tab["4b"]["Image"] = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150);
 			tab["4b"]["Size"] = UDim2.new(0, 100, 0, 100);
 			tab["4b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["4b"]["BackgroundTransparency"] = 0.5;
@@ -1425,7 +1556,7 @@ function library:CreateWindow(options)
 			tab["4e"]["BackgroundTransparency"] = 1;
 			tab["4e"]["Size"] = UDim2.new(0, 150, 0, 20);
 			tab["4e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tab["4e"]["Text"] = [[Username]];
+			tab["4e"]["Text"] = [[@]] .. player.Name;
 			tab["4e"]["Name"] = [[Username]];
 			tab["4e"]["Position"] = UDim2.new(1, -270, 1, -105);
 
@@ -1441,7 +1572,7 @@ function library:CreateWindow(options)
 			tab["4f"]["BackgroundTransparency"] = 1;
 			tab["4f"]["Size"] = UDim2.new(0, 150, 0, 20);
 			tab["4f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tab["4f"]["Text"] = [[Age: nil days]];
+			tab["4f"]["Text"] = [[age: ]].. player.AccountAge ..[[ days]];
 			tab["4f"]["Name"] = [[Age]];
 			tab["4f"]["Position"] = UDim2.new(1, -270, 1, -83);
 
@@ -1482,7 +1613,31 @@ function library:CreateWindow(options)
 			tab["52"]["BackgroundTransparency"] = 1;
 			tab["52"]["Size"] = UDim2.new(0, 150, 0, 20);
 			tab["52"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tab["52"]["Text"] = [[Time: 00:00]];
+			local currentTime = DateTime.now()
+			local timeZone = os.date("%Z")
+			
+			-- TimeZone abbreviations
+			local function getTimeZoneAbbreviation(fullName)
+				local abbreviations = {
+					["Eastern Standard Time"] = "EST",
+					["Eastern Daylight Time"] = "EDT",
+					["Central Standard Time"] = "CST",
+					["Central Daylight Time"] = "CDT",
+					["Mountain Standard Time"] = "MST",
+					["Mountain Daylight Time"] = "MDT",
+					["Pacific Standard Time"] = "PST",
+					["Pacific Daylight Time"] = "PDT",
+					["Mountain Standard Time (Mexico)"] = "MST",
+					["Pacific Standard Time (Mexico)"] = "PST",
+					["UTC"] = "UTC",
+					["GMT"] = "GMT"
+				}
+				return abbreviations[fullName] or fullName
+			end
+			
+			local timeZoneAbbrev = getTimeZoneAbbreviation(timeZone)
+			tab["52"]["Text"] = [[Time: ]] .. currentTime:FormatLocalTime("HH:mm:ss", "en-us") .. " " .. currentTime:FormatLocalTime("MM/dd/yy", "en-us") .. " (" .. timeZoneAbbrev .. ")";
+			
 			tab["52"]["Name"] = [[Time]];
 			tab["52"]["Position"] = UDim2.new(1, -270, 1, -30);
 		end
@@ -1518,7 +1673,7 @@ function library:CreateWindow(options)
 				end
 			end
 
-			tab["17"].MouseEnter:Connect(function()
+			NewConnection(tab["17"], "MouseEnter", function()
 				tab.Hover = true
 
 				if not tab.Active then
@@ -1527,7 +1682,7 @@ function library:CreateWindow(options)
 				end
 			end)
 
-			tab["17"].MouseLeave:Connect(function()
+			NewConnection(tab["17"], "MouseLeave", function()
 				tab.Hover = false
 
 				if not tab.Active then
@@ -1536,7 +1691,7 @@ function library:CreateWindow(options)
 				end
 			end)
 
-			tab["1b"].Activated:Connect(function()
+			NewConnection(tab["1b"], "Activated", function()
 				if tab.Hover then
 					tab:Activate()
 				end
@@ -1545,6 +1700,36 @@ function library:CreateWindow(options)
 			if tree.CurrentTab == nil then
 				tab:Activate()
 			end
+			
+			-- clock update
+			task.spawn(function()
+				-- Convert Timezone names to abbreviations
+				local function getTimeZoneAbbreviation(fullName)
+					local abbreviations = {
+						["Eastern Standard Time"] = "EST",
+						["Eastern Daylight Time"] = "EDT",
+						["Central Standard Time"] = "CST",
+						["Central Daylight Time"] = "CDT",
+						["Mountain Standard Time"] = "MST",
+						["Mountain Daylight Time"] = "MDT",
+						["Pacific Standard Time"] = "PST",
+						["Pacific Daylight Time"] = "PDT",
+						["Mountain Standard Time (Mexico)"] = "MST",
+						["Pacific Standard Time (Mexico)"] = "PST",
+						["UTC"] = "UTC",
+						["GMT"] = "GMT"
+					}
+					return abbreviations[fullName] or fullName
+				end
+				
+				while true do
+					local currentTime = DateTime.now()
+					local timeZone = os.date("%Z")
+					local timeZoneAbbrev = getTimeZoneAbbreviation(timeZone)
+					tab["52"]["Text"] = [[Time: ]] .. currentTime:FormatLocalTime("HH:mm:ss", "en-us") .. " " .. " ( " .. timeZoneAbbrev .. " )"
+					task.wait(1)
+				end
+			end)
 		end
 		
 		return tab
@@ -1701,7 +1886,7 @@ function library:CreateWindow(options)
 				end
 			end
 
-			tab["17"].MouseEnter:Connect(function()
+			NewConnection(tab["17"], "MouseEnter", function()
 				tab.Hover = true
 
 				if not tab.Active then
@@ -1710,7 +1895,7 @@ function library:CreateWindow(options)
 				end
 			end)
 
-			tab["17"].MouseLeave:Connect(function()
+			NewConnection(tab["17"], "MouseLeave", function()
 				tab.Hover = false
 
 				if not tab.Active then
@@ -1719,7 +1904,7 @@ function library:CreateWindow(options)
 				end
 			end)
 
-			tab["1b"].Activated:Connect(function()
+			NewConnection(tab["1b"], "Activated", function()
 				if tab.Hover then
 					tab:Activate()
 				end
