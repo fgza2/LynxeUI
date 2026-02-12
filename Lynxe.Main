@@ -1530,7 +1530,7 @@ function library:CreateWindow(options)
 			tab["4e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
 			tab["4e"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 			tab["4e"]["BackgroundTransparency"] = 1;
-			tab["4e"]["Size"] = UDim2.new(0.542, 0, 0.171, 0));
+			tab["4e"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["4e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["4e"]["Text"] = [[@]] .. player.Name;
 			tab["4e"]["Name"] = [[Username]];
