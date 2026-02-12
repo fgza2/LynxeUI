@@ -1,3 +1,4 @@
+-- Lynxe User Interface : by Foggza_
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 -- Services
@@ -923,7 +924,7 @@ function library:CreateWindow(options)
 		tree["31"]["Position"] = UDim2.new(0, 50, 0, 50);
 		tree["31"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["31"]["Name"] = [[ToggleOne]];
-
+-- Lynxe User Interface : by Foggza_
 
 		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.UICorner
 		tree["32"] = Instance.new("UICorner", tree["31"]);
@@ -1928,7 +1929,7 @@ local Window = library:CreateWindow({
 })
 
 local HomeTab = Window:CreateHomeTab()
-
+-- Lynxe User Interface : by Foggza_ -- Lynxe User Interface : by Foggza_
 
 local tab1 =  Window:CreateTab({})
 local tab2 =  Window:CreateTab({})
