@@ -307,11 +307,11 @@ function library:CreateWindow(options)
 		tree["d01"] = Instance.new("UIAspectRatioConstraint", tree["2"]);
 		tree["d01"]["AspectRatio"] = 1.43;
 		
-		-- Add mobile scaling
+		--[[ Add mobile scaling
 		if library.IsMobile then
 			local mobileScale = Instance.new("UIScale", tree["2"])
 			mobileScale.Scale = 0.7 -- 30% smaller on mobile
-		end
+		end]]
 
 		-- StarterGui.UI.Window.DropShadowHolder
 		tree["5"] = Instance.new("Frame", tree["2"]);
