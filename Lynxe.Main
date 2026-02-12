@@ -282,12 +282,14 @@ function library:CreateWindow(options)
 		tree["2"]["BorderSizePixel"] = 0;
 		tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 		
-		-- Calculate responsive size based on screen
-		local scaleFactor = math.min(UserScreenSize.X / 1920, UserScreenSize.Y / 1080)
-		local baseWidth, baseHeight = 500, 350
-		
-		tree["2"]["Size"] = UDim2.new(0, baseWidth * scaleFactor, 0, baseHeight * scaleFactor)
-		tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
+		-- Use relative sizing for better mobile compatibility
+		if library.IsMobile then
+			tree["2"]["Size"] = UDim2.new(0.85, 0, 0.7, 0) -- 85% width, 70% height on mobile
+		else
+			tree["2"]["Size"] = UDim2.new(0, 500, 0, 350) -- Fixed size on desktop
+		end
+		tree["2"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); -- Center using relative positioning
+		tree["2"]["AnchorPoint"] = Vector2.new(0.5, 0.5); -- Center anchor point
 		tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["2"]["Name"] = [[Window]];
 		tree["2"]["LayoutOrder"] = 3;
@@ -307,11 +309,7 @@ function library:CreateWindow(options)
 		tree["d01"] = Instance.new("UIAspectRatioConstraint", tree["2"]);
 		tree["d01"]["AspectRatio"] = 1.43;
 		
-		--[[ Add mobile scaling
-		if library.IsMobile then
-			local mobileScale = Instance.new("UIScale", tree["2"])
-			mobileScale.Scale = 0.7 -- 30% smaller on mobile
-		end]]
+
 
 		-- StarterGui.UI.Window.DropShadowHolder
 		tree["5"] = Instance.new("Frame", tree["2"]);
