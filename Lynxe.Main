@@ -354,26 +354,41 @@ function library:CreateWindow(options)
 			tree["e2"]["CornerRadius"] = UDim.new(1, 0);
 
 			-- StarterGui.UI.ToggleUI.Logo
-			tree["e4"] = Instance.new("ImageButton", tree["e1"]);
+			tree["e4"] = Instance.new("ImageLabel", tree["e1"]);
+			tree["e4"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
 			tree["e4"]["BorderSizePixel"] = 0;
 			tree["e4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
 			tree["e4"]["Image"] = [[rbxassetid://10709782497]];
-			tree["e4"]["Size"] = UDim2.new(1, -10, 1, -10);
+			tree["e4"]["Size"] = UDim2.new(1, -15, 1, -15);
 			tree["e4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e4"]["BackgroundTransparency"] = 1;
 			tree["e4"]["Name"] = [[Logo]];
-			tree["e4"]["Position"] = UDim2.fromOffset(tree["e1"].Size.X.Offset / 2, tree["e1"].Size.Y.Offset / 2);
+			tree["e4"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+			
+			-- StarterGui.UI.ToggleUI.Button
+			tree["e5"] = Instance.new("ImageButton", tree["e1"]);
+			tree["e5"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+			tree["e5"]["BorderSizePixel"] = 0;
+			tree["e5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+			tree["e5"]["Image"] = nil;
+			tree["e5"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tree["e5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+			tree["e5"]["BackgroundTransparency"] = 1;
+			tree["e5"]["Name"] = [[Logo]];
+			tree["e5"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
 		end
 		
-		NewConnection(tree["e4"], "Activated", function()
+		NewConnection(tree["e5"], "Activated", function()
 			if tree.UIactive then
 				library:tween(tree["e1"], {BackgroundTransparency = 1})
+				library:tween(tree["e4"], {ImageTransparency = 1})
 				library:tween(tree["2"], {BackgroundTransparency = 1}, function()
 					tree.UIactive = false
 				end)
 			elseif not tree.UIactive then
 				tree.UIactive = true
 				library:tween(tree["e1"], {BackgroundTransparency = 0.2})
+				library:tween(tree["e4"], {ImageTransparency = 0})
 				library:tween(tree["2"], {BackgroundTransparency = 0.2})
 			end
 		end)
