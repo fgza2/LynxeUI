@@ -281,19 +281,13 @@ function library:CreateWindow(options)
 		tree["2"]["ZIndex"] = 3;
 		tree["2"]["BorderSizePixel"] = 0;
 		tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-		
-		-- Use relative sizing for better mobile compatibility
-		if library.IsMobile then
-			tree["2"]["Size"] = UDim2.new(0.85, 0, 0.7, 0) -- 85% width, 70% height on mobile
-		else
-			tree["2"]["Size"] = UDim2.new(0, 500, 0, 350) -- Fixed size on desktop
-		end
-		tree["2"]["Position"] = UDim2.new(0.5, 0, 0.5, 0); -- Center using relative positioning
-		tree["2"]["AnchorPoint"] = Vector2.new(0.5, 0.5); -- Center anchor point
+		tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
+		tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
 		tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["2"]["Name"] = [[Window]];
 		tree["2"]["LayoutOrder"] = 3;
 		tree["2"]["BackgroundTransparency"] = 0.2;
+
 
 		-- StarterGui.UI.Window.UICorner
 		tree["3"] = Instance.new("UICorner", tree["2"]);
@@ -301,14 +295,6 @@ function library:CreateWindow(options)
 
 		-- StarterGui.UI.Window.UIStroke
 		tree["4"] = Instance.new("UIStroke", tree["2"]);
-
-		-- StarterGui.UI.Window.UISizeConstraint
-		tree["ce1"] = Instance.new("UISizeConstraint", tree["2"]);
-
-		-- StarterGui.UI.Window.UIAspectRatioConstraint
-		tree["d01"] = Instance.new("UIAspectRatioConstraint", tree["2"]);
-		tree["d01"]["AspectRatio"] = 1.43;
-		
 
 
 		-- StarterGui.UI.Window.DropShadowHolder
@@ -341,7 +327,8 @@ function library:CreateWindow(options)
 	end)
 	
 	if library.IsMobile then
-		
+		local mobileScale = Instance.new("UIScale", tree["2"])
+		mobileScale.Scale = 0.7 -- 30% smaller on mobile
 		
 		-- Mobile toggle button
 		do
@@ -1516,11 +1503,11 @@ function library:CreateWindow(options)
 			tab["4b"]["BorderSizePixel"] = 0;
 			tab["4b"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
 			tab["4b"]["Image"] = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150);
-			tab["4b"]["Size"] = UDim2.new(0, 100, 0, 100);
+			tab["4b"]["Size"] = UDim2.new(0.361, 0, 0.855, 0);
 			tab["4b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["4b"]["BackgroundTransparency"] = 0.5;
 			tab["4b"]["Name"] = [[PFP]];
-			tab["4b"]["Position"] = UDim2.new(1, -110, 1, -110);
+			tab["4b"]["Position"] = UDim2.new(0.603, 0, 0.068, 0);
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP.UICorner
@@ -1543,11 +1530,15 @@ function library:CreateWindow(options)
 			tab["4e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
 			tab["4e"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 			tab["4e"]["BackgroundTransparency"] = 1;
-			tab["4e"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["4e"]["Size"] = UDim2.new(0.542, 0, 0.171, 0));
 			tab["4e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["4e"]["Text"] = [[@]] .. player.Name;
 			tab["4e"]["Name"] = [[Username]];
-			tab["4e"]["Position"] = UDim2.new(1, -270, 1, -105);
+			tab["4e"]["Position"] = UDim2.new(0.025, 0, 0.103, 0);
+			
+			tab["4e1"] = Instance.new("UITextSizeConstraint", tab["4e"]);
+			tab["4e1"]["MaxTextSize"] = 20;
+			tab["4e1"]["MinTextSize"] = 1;
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Age
@@ -1559,19 +1550,23 @@ function library:CreateWindow(options)
 			tab["4f"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
 			tab["4f"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 			tab["4f"]["BackgroundTransparency"] = 1;
-			tab["4f"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["4f"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["4f"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["4f"]["Text"] = [[age: ]].. player.AccountAge ..[[ days]];
 			tab["4f"]["Name"] = [[Age]];
-			tab["4f"]["Position"] = UDim2.new(1, -270, 1, -83);
+			tab["4f"]["Position"] = UDim2.new(0.025, 0, 0.291, 0);
+			
+			tab["4f1"] = Instance.new("UITextSizeConstraint", tab["4f"]);
+			tab["4f1"]["MaxTextSize"] = 20;
+			tab["4f1"]["MinTextSize"] = 1;
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Frame
 			tab["50"] = Instance.new("Frame", tab["48"]);
 			tab["50"]["BorderSizePixel"] = 0;
 			tab["50"]["BackgroundColor3"] = Color3.fromRGB(101, 101, 101);
-			tab["50"]["Size"] = UDim2.new(1, -150, 1, -118);
-			tab["50"]["Position"] = UDim2.new(1, -255, 1, -55);
+			tab["50"]["Size"] = UDim2.new(0.458, 0, 0.009, 0);
+			tab["50"]["Position"] = UDim2.new(0.079, 0, 0.53, 0);
 			tab["50"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 
 
@@ -1584,11 +1579,15 @@ function library:CreateWindow(options)
 			tab["51"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
 			tab["51"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 			tab["51"]["BackgroundTransparency"] = 1;
-			tab["51"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["51"]["Text"] = [[Executer:]];
 			tab["51"]["Name"] = [[Executer]];
-			tab["51"]["Position"] = UDim2.new(1, -270, 1, -50);
+			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
+			
+			tab["511"] = Instance.new("UITextSizeConstraint", tab["51"]);
+			tab["511"]["MaxTextSize"] = 20;
+			tab["511"]["MinTextSize"] = 1
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.Time
@@ -1600,7 +1599,7 @@ function library:CreateWindow(options)
 			tab["52"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
 			tab["52"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
 			tab["52"]["BackgroundTransparency"] = 1;
-			tab["52"]["Size"] = UDim2.new(0, 150, 0, 20);
+			tab["52"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["52"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			local currentTime = DateTime.now()
 			local timeZone = os.date("%Z")
@@ -1628,7 +1627,11 @@ function library:CreateWindow(options)
 			tab["52"]["Text"] = [[Time: ]] .. currentTime:FormatLocalTime("HH:mm:ss", "en-us") .. " " .. currentTime:FormatLocalTime("MM/dd/yy", "en-us") .. " (" .. timeZoneAbbrev .. ")";
 			
 			tab["52"]["Name"] = [[Time]];
-			tab["52"]["Position"] = UDim2.new(1, -270, 1, -30);
+			tab["52"]["Position"] = UDim2.new(0.025, 0, 0.744, 0);
+			
+			tab["521"] = Instance.new("UITextSizeConstraint", tab["52"]);
+			tab["521"]["MaxTextSize"] = 20;
+			tab["521"]["MinTextSize"] = 1
 		end
 		
 		-- methods, logic
