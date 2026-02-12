@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 -- Variables
 local player = Players.LocalPlayer
 
+
 local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
@@ -268,6 +269,7 @@ function library:CreateWindow(options)
 		-- StarterGui.UI
 		tree["1"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
 		tree["1"]["IgnoreGuiInset"] = true;
+		tree["1"]["DisplayOrder"] = 5;
 		tree["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
 		tree["1"]["Name"] = [[UI]];
 		tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
@@ -332,6 +334,15 @@ function library:CreateWindow(options)
 	end)
 	
 	if library.IsMobile then
+		local mobileScale = 0.8
+		for _, child in pairs(tree["2"]:GetDescendants()) do
+			if child:IsA("GuiObject") and child ~= tree["2"] then
+				if child.Size.X.Scale > 0 then
+					child.Size = UDim2.new(child.Size.X.Scale * mobileScale, child.Size.X.Offset, 
+						child.Size.Y.Scale, child.Size.Y.Offset)
+				end
+			end
+		end
 		
 		-- Mobile toggle button
 		do
@@ -343,7 +354,7 @@ function library:CreateWindow(options)
 			tree["e1"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 			tree["e1"]["AnchorPoint"] = Vector2.new(1, 1);
 			tree["e1"]["Size"] = UDim2.new(0, 40, 0, 40);
-			tree["e1"]["Position"] = UDim2.new(1, -10, -340);
+			tree["e1"]["Position"] = UDim2.new(1, -10, 1, -340);
 			tree["e1"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e1"]["Name"] = [[ToggleUI]];
 			tree["e1"]["LayoutOrder"] = 3;
