@@ -370,7 +370,7 @@ function library:CreateWindow(options)
 			tree["e5"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
 			tree["e5"]["BorderSizePixel"] = 0;
 			tree["e5"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-			tree["e5"]["Image"] = nil;
+			tree["e5"]["ImageTransparency"] = 1;
 			tree["e5"]["Size"] = UDim2.new(1, 0, 1, 0);
 			tree["e5"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e5"]["BackgroundTransparency"] = 1;
