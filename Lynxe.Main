@@ -281,13 +281,17 @@ function library:CreateWindow(options)
 		tree["2"]["ZIndex"] = 3;
 		tree["2"]["BorderSizePixel"] = 0;
 		tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-		tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
+		
+		-- Calculate responsive size based on screen
+		local scaleFactor = math.min(UserScreenSize.X / 1920, UserScreenSize.Y / 1080)
+		local baseWidth, baseHeight = 500, 350
+		
+		tree["2"]["Size"] = UDim2.new(0, baseWidth * scaleFactor, 0, baseHeight * scaleFactor)
 		tree["2"]["Position"] = UDim2.fromOffset((UserScreenSize.X / 2) - (tree["2"].Size.X.Offset / 2), (UserScreenSize.Y / 2) - (tree["2"].Size.Y.Offset / 2));
 		tree["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["2"]["Name"] = [[Window]];
 		tree["2"]["LayoutOrder"] = 3;
 		tree["2"]["BackgroundTransparency"] = 0.2;
-
 
 		-- StarterGui.UI.Window.UICorner
 		tree["3"] = Instance.new("UICorner", tree["2"]);
@@ -302,7 +306,12 @@ function library:CreateWindow(options)
 		-- StarterGui.UI.Window.UIAspectRatioConstraint
 		tree["d01"] = Instance.new("UIAspectRatioConstraint", tree["2"]);
 		tree["d01"]["AspectRatio"] = 1.43;
-
+		
+		-- Add mobile scaling
+		if library.IsMobile then
+			local mobileScale = Instance.new("UIScale", tree["2"])
+			mobileScale.Scale = 0.7 -- 30% smaller on mobile
+		end
 
 		-- StarterGui.UI.Window.DropShadowHolder
 		tree["5"] = Instance.new("Frame", tree["2"]);
@@ -334,15 +343,7 @@ function library:CreateWindow(options)
 	end)
 	
 	if library.IsMobile then
-		local mobileScale = 0.8
-		for _, child in pairs(tree["2"]:GetDescendants()) do
-			if child:IsA("GuiObject") and child ~= tree["2"] then
-				if child.Size.X.Scale > 0 then
-					child.Size = UDim2.new(child.Size.X.Scale * mobileScale, child.Size.X.Offset, 
-						child.Size.Y.Scale, child.Size.Y.Offset)
-				end
-			end
-		end
+		
 		
 		-- Mobile toggle button
 		do
