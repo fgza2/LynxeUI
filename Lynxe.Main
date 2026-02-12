@@ -332,25 +332,18 @@ function library:CreateWindow(options)
 	end)
 	
 	if library.IsMobile then
-		tree["2"].Size = tree["2"].Size - UDim2.new(0, 20, 0, 20)
-		
-		local DragTogSet = {
-			dragToggleT = nil,
-			dragSpeedT = 0.1,
-			dragStartT = nil,
-			startPosT = nil	
-		}
 		
 		-- Mobile toggle button
 		do
 			-- StarterGui.UI.ToggleUI
 			tree["e1"] = Instance.new("Frame", tree["1"]);
-			tree["e1"]["Visible"] = true;
+			tree["e1"]["Visible"] = false;
 			tree["e1"]["ZIndex"] = 3;
 			tree["e1"]["BorderSizePixel"] = 0;
 			tree["e1"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-			tree["e1"]["Size"] = UDim2.new(0, 48, 0, 48);
-			tree["e1"]["Position"] = UDim2.new(0.90898, 0, 0.0747, 0);
+			tree["e1"]["AnchorPoint"] = Vector2.new(1, 1);
+			tree["e1"]["Size"] = UDim2.new(0, 40, 0, 40);
+			tree["e1"]["Position"] = UDim2.new(1, -10, -340);
 			tree["e1"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e1"]["Name"] = [[ToggleUI]];
 			tree["e1"]["LayoutOrder"] = 3;
@@ -360,61 +353,27 @@ function library:CreateWindow(options)
 			tree["e2"] = Instance.new("UICorner", tree["e1"]);
 			tree["e2"]["CornerRadius"] = UDim.new(1, 0);
 
-
-			-- StarterGui.UI.ToggleUI.UIStroke
-			tree["e3"] = Instance.new("UIStroke", tree["e1"]);
-
 			-- StarterGui.UI.ToggleUI.Logo
 			tree["e4"] = Instance.new("ImageButton", tree["e1"]);
 			tree["e4"]["BorderSizePixel"] = 0;
 			tree["e4"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
 			tree["e4"]["Image"] = [[rbxassetid://10709782497]];
-			tree["e4"]["Size"] = UDim2.new(1, -30, 1, -30);
+			tree["e4"]["Size"] = UDim2.new(1, -10, 1, -10);
 			tree["e4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e4"]["BackgroundTransparency"] = 1;
 			tree["e4"]["Name"] = [[Logo]];
-			tree["e4"]["Position"] = UDim2.new(0.25, 0, 0.25, 0);
-		end
-		
-		-- Drag logic
-		do
-			local UITogFrame = tree["e1"]
-
-			local function updateInput(input)
-				local delta = input.Position - DragTogSet.dragStart
-				local position = UDim2.new(DragTogSet.startPos.X.Scale, DragTogSet.startPos.X.Offset + delta.X, DragTogSet.startPos.Y.Scale, DragTogSet.startPos.Y.Offset + delta.Y)
-				game:GetService("TweenService"):Create(UITogFrame, TweenInfo.new(DragTogSet.dragSpeed), {Position = position}):Play()
-			end
-
-			UITogFrame.InputBegan:Connect(function(input)
-				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-					DragTogSet.dragToggle = true
-					DragTogSet.dragStart = input.Position
-					DragTogSet.startPos = UITogFrame.Position
-					input.Changed:Connect(function()
-						if input.UserInputState == Enum.UserInputState.End then
-							DragTogSet.dragToggle = false
-						end
-					end)
-				end
-			end)
-
-			UserInputService.InputChanged:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-					if DragTogSet.dragToggle then
-						updateInput(input)
-					end
-				end
-			end)
+			tree["e4"]["Position"] = UDim2.fromOffset(tree["e1"].Size.X.Offset / 2, tree["e1"].Size.Y.Offset / 2);
 		end
 		
 		NewConnection(tree["e4"], "Activated", function()
 			if tree.UIactive then
+				library:tween(tree["e1"], {BackgroundTransparency = 1})
 				library:tween(tree["2"], {BackgroundTransparency = 1}, function()
 					tree.UIactive = false
 				end)
 			elseif not tree.UIactive then
 				tree.UIactive = true
+				library:tween(tree["e1"], {BackgroundTransparency = 0.2})
 				library:tween(tree["2"], {BackgroundTransparency = 0.2})
 			end
 		end)
@@ -1390,7 +1349,8 @@ function library:CreateWindow(options)
 
 		task.wait(1)
 		tree["cd"]:Destroy()
-		tree["2"].Visible = true
+		tree["UIactive"] = true
+		tree["e1"].Visible = true
 
 		if options["LynxeUIPrompts"] then 
 			library:Notify({
