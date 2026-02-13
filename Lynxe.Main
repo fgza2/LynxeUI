@@ -1597,6 +1597,7 @@ function library:CreateWindow(options)
 			tab["52"] = Instance.new("TextLabel", tab["48"]);
 			tab["52"]["BorderSizePixel"] = 0;
 			tab["52"]["TextSize"] = 15;
+			tab["52"]["TextScaled"] = true;
 			tab["52"]["TextTransparency"] = 0.15;
 			tab["52"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["52"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
@@ -1606,9 +1607,9 @@ function library:CreateWindow(options)
 			tab["52"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			
 			local currentTime = DateTime.now()
-			local timeString = currentTime:FormatLocalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+			local timeString = currentTime:FormatLocalTime("HH:mm:ss", "en-us")
 			
-			local utcTime = currentTime:FormatUniversalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+			local utcTime = currentTime:FormatUniversalTime("HH:mm:ss", "en-us")
 			local localHour = tonumber(string.sub(timeString, 1, 2))
 			
 			local utcHour = tonumber(string.sub(utcTime, 1, 2))
@@ -1743,9 +1744,9 @@ function library:CreateWindow(options)
 				
 				while true do
 					local currentTime = DateTime.now()
-					local timeString = currentTime:FormatLocalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+					local timeString = currentTime:FormatLocalTime("HH:mm:ss", "en-us")
 					
-					local utcTime = currentTime:FormatUniversalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+					local utcTime = currentTime:FormatUniversalTime("HH:mm:ss", "en-us")
 					local localHour = tonumber(string.sub(timeString, 1, 2))
 					
 					local utcHour = tonumber(string.sub(utcTime, 1, 2))
