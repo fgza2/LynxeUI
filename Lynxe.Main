@@ -1596,7 +1596,7 @@ function library:CreateWindow(options)
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			local exec_name, exec_version = identifyexecutor()
-			tab["51"]["Text"] = exec_name .. " " .. "(" .. exec_version .. ")";
+			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
@@ -1610,6 +1610,7 @@ function library:CreateWindow(options)
 			tab["52"]["BorderSizePixel"] = 0;
 			tab["52"]["TextSize"] = 15;
 			tab["52"]["TextScaled"] = true;
+			tab["52"]["TextScaled"] = false;
 			tab["52"]["TextTransparency"] = 0.15;
 			tab["52"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["52"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
