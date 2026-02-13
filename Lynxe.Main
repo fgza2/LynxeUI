@@ -3,10 +3,16 @@ if not game:IsLoaded() then game.Loaded:Wait() end
 -- Services
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+
 local RunService = game:GetService("RunService")
+local HttpsService = game:GetService("HttpService")
+
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
+if CoreGui:FindFirstChild("LynxeUILibrary") then
+	CoreGui:FindFirstChild("LynxeUILibrary"):Destroy()
+end
 
 -- Variables
 local player = Players.LocalPlayer
@@ -38,6 +44,7 @@ end
 
 local library = {}
 library.IsMobile = false
+library.execName, library.execVer = not RunService:IsStudio() and identifyexecutor()
 
 if UserInputService.TouchEnabled then 
 	library.IsMobile = true
@@ -210,6 +217,11 @@ function library:Notify(options)
 		NotifyUI["c"]["BackgroundTransparency"] = 1;
 		NotifyUI["c"]["Name"] = [[Image]];
 		NotifyUI["c"]["Position"] = UDim2.new(1, -224, 0, 3);
+	end
+	
+	if library.IsMobile then
+		local MobileScale = Instance.new("UIScale", NotifyUI["2"])
+		MobileScale.Scale = 0.7 
 	end
 	
 	local Notifications = library["NotifyContainer"]:GetChildren()
@@ -1584,7 +1596,7 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tab["51"]["Text"] = [[Executer:]];
+			tab["51"]["Text"] = library["execName"] .. " " .. "(" .. library["execVer"] .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
