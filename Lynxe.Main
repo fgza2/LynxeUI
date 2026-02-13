@@ -44,7 +44,6 @@ end
 
 local library = {}
 library.IsMobile = false
-library.execName, library.execVer = not RunService:IsStudio() and identifyexecutor()
 
 if UserInputService.TouchEnabled then 
 	library.IsMobile = true
@@ -1596,7 +1595,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			tab["51"]["Text"] = library["execName"] .. " " .. "(" .. library["execVer"] .. ")";
+			local exec_name, exec_version = identifyexecutor()
+			tab["51"]["Text"] = exec_name .. " " .. "(" .. exec_version .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
