@@ -489,7 +489,7 @@ function library:CreateWindow(options)
 		tree["b"]["BackgroundTransparency"] = 1;
 		tree["b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
 		tree["b"]["AnchorPoint"] = Vector2.new(1, 0);
-		tree["b"]["Image"] = [[rbxassetid://10723415494]];
+		tree["b"]["Image"] = [[rbxassetid://10734950309]];
 		tree["b"]["Size"] = UDim2.new(0, 20, 0, 20);
 		tree["b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["b"]["Name"] = [[SettingsButton]];
@@ -919,7 +919,7 @@ function library:CreateWindow(options)
 		tree["31"] = Instance.new("Frame", tree["30"]);
 		tree["31"]["BorderSizePixel"] = 0;
 		tree["31"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
-		tree["31"]["Size"] = UDim2.new(0, 128, 0, 50);
+		tree["31"]["Size"] = UDim2.new(0, 150, 0, 50);
 		tree["31"]["Position"] = UDim2.new(0, 50, 0, 50);
 		tree["31"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["31"]["Name"] = [[ToggleOne]];
@@ -941,9 +941,9 @@ function library:CreateWindow(options)
 		tree["33"]["BackgroundTransparency"] = 1;
 		tree["33"]["Size"] = UDim2.new(0, 100, 0, 20);
 		tree["33"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["33"]["Text"] = [[Vertical]];
+		tree["33"]["Text"] = [[24-HR Clock]];
 		tree["33"]["Name"] = [[Name]];
-		tree["33"]["Position"] = UDim2.new(0, -15, 0, 15);
+		tree["33"]["Position"] = UDim2.new(0, -5 ,0, 15);
 
 
 		-- StarterGui.UI.Window.SettingsPage.Content.ToggleOne.Indicate
@@ -951,7 +951,7 @@ function library:CreateWindow(options)
 		tree["34"]["BorderSizePixel"] = 0;
 		tree["34"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
 		tree["34"]["Size"] = UDim2.new(0, 45, 0, 20);
-		tree["34"]["Position"] = UDim2.new(0, 67, 0, 15);
+		tree["34"]["Position"] = UDim2.new(0, 95, 0, 15);
 		tree["34"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["34"]["Name"] = [[Indicate]];
 
