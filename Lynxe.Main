@@ -1604,30 +1604,39 @@ function library:CreateWindow(options)
 			tab["52"]["BackgroundTransparency"] = 1;
 			tab["52"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["52"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			local currentTime = DateTime.now()
-			local timeZone = os.date("%Z")
 			
-			-- TimeZone abbreviations
-			local function getTimeZoneAbbreviation(fullName)
-				local abbreviations = {
-					["Eastern Standard Time"] = "EST",
-					["Eastern Daylight Time"] = "EDT",
-					["Central Standard Time"] = "CST",
-					["Central Daylight Time"] = "CDT",
-					["Mountain Standard Time"] = "MST",
-					["Mountain Daylight Time"] = "MDT",
-					["Pacific Standard Time"] = "PST",
-					["Pacific Daylight Time"] = "PDT",
-					["Mountain Standard Time (Mexico)"] = "MST",
-					["Pacific Standard Time (Mexico)"] = "PST",
-					["UTC"] = "UTC",
-					["GMT"] = "GMT"
+			-- Get current time and timezone using recommended method
+			local currentTime = DateTime.now()
+			local timeString = currentTime:FormatLocalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+			
+			-- Calculate timezone offset by comparing local and UTC times
+			local utcTime = currentTime:FormatUniversalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+			local localHour = tonumber(string.sub(timeString, 1, 2))
+			local utcHour = tonumber(string.sub(utcTime, 1, 2))
+			local offset = localHour - utcHour
+			
+			-- Handle cases where offset crosses day boundaries
+			if offset > 12 then offset = offset - 24 end
+			if offset < -12 then offset = offset + 24 end
+			
+			-- Get timezone abbreviation from offset
+			local function getTimeZoneFromOffset(offset)
+				local offsets = {
+					["-12"] = "Baker", ["-11"] = "Samoa", ["-10"] = "HST",
+					["-9"] = "AKST", ["-8"] = "PST", ["-7"] = "MST",
+					["-6"] = "CST", ["-5"] = "EST", ["-4"] = "AST",
+					["-3"] = "BRT", ["-2"] = "FNT", ["-1"] = "AZOT",
+					["0"] = "GMT", ["1"] = "CET", ["2"] = "EET",
+					["3"] = "MSK", ["4"] = "GST", ["5"] = "PKT",
+					["5.5"] = "IST", ["6"] = "BST", ["7"] = "ICT",
+					["8"] = "CST", ["9"] = "JST", ["10"] = "AEST",
+					["11"] = "AEDT", ["12"] = "NZST"
 				}
-				return abbreviations[fullName] or fullName
+				return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 			end
 			
-			local timeZoneAbbrev = getTimeZoneAbbreviation(timeZone)
-			tab["52"]["Text"] = [[Time: ]] .. currentTime:FormatLocalTime("HH:mm:ss", "en-us") .. " " .. currentTime:FormatLocalTime("MM/dd/yy", "en-us") .. " (" .. timeZoneAbbrev .. ")";
+			local timeZoneAbbrev = getTimeZoneFromOffset(offset)
+			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")";
 			
 			tab["52"]["Name"] = [[Time]];
 			tab["52"]["Position"] = UDim2.new(0.025, 0, 0.744, 0);
@@ -1698,30 +1707,38 @@ function library:CreateWindow(options)
 			
 			-- clock update
 			task.spawn(function()
-				-- Convert Timezone names to abbreviations
-				local function getTimeZoneAbbreviation(fullName)
-					local abbreviations = {
-						["Eastern Standard Time"] = "EST",
-						["Eastern Daylight Time"] = "EDT",
-						["Central Standard Time"] = "CST",
-						["Central Daylight Time"] = "CDT",
-						["Mountain Standard Time"] = "MST",
-						["Mountain Daylight Time"] = "MDT",
-						["Pacific Standard Time"] = "PST",
-						["Pacific Daylight Time"] = "PDT",
-						["Mountain Standard Time (Mexico)"] = "MST",
-						["Pacific Standard Time (Mexico)"] = "PST",
-						["UTC"] = "UTC",
-						["GMT"] = "GMT"
+				-- Recommended timezone detection method
+				local function getTimeZoneFromOffset(offset)
+					local offsets = {
+						["-12"] = "Baker", ["-11"] = "Samoa", ["-10"] = "HST",
+						["-9"] = "AKST", ["-8"] = "PST", ["-7"] = "MST",
+						["-6"] = "CST", ["-5"] = "EST", ["-4"] = "AST",
+						["-3"] = "BRT", ["-2"] = "FNT", ["-1"] = "AZOT",
+						["0"] = "GMT", ["1"] = "CET", ["2"] = "EET",
+						["3"] = "MSK", ["4"] = "GST", ["5"] = "PKT",
+						["5.5"] = "IST", ["6"] = "BST", ["7"] = "ICT",
+						["8"] = "CST", ["9"] = "JST", ["10"] = "AEST",
+						["11"] = "AEDT", ["12"] = "NZST"
 					}
-					return abbreviations[fullName] or fullName
+					return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 				end
 				
 				while true do
 					local currentTime = DateTime.now()
-					local timeZone = os.date("%Z")
-					local timeZoneAbbrev = getTimeZoneAbbreviation(timeZone)
-					tab["52"]["Text"] = [[Time: ]] .. currentTime:FormatLocalTime("HH:mm:ss", "en-us") .. " " .. " ( " .. timeZoneAbbrev .. " )"
+					local timeString = currentTime:FormatLocalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+					
+					-- Calculate timezone offset
+					local utcTime = currentTime:FormatUniversalTime("HH:mm:ss MM/dd/yyyy", "en-us")
+					local localHour = tonumber(string.sub(timeString, 1, 2))
+					local utcHour = tonumber(string.sub(utcTime, 1, 2))
+					local offset = localHour - utcHour
+					
+					-- Handle day boundary cases
+					if offset > 12 then offset = offset - 24 end
+					if offset < -12 then offset = offset + 24 end
+					
+					local timeZoneAbbrev = getTimeZoneFromOffset(offset)
+					tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")"
 					task.wait(1)
 				end
 			end)
