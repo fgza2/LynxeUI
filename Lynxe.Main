@@ -538,7 +538,7 @@ function library:CreateWindow(options)
 		tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
 		tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
 		tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["c"]["Text"] = [[Ver. 0.0.1]];
+		tree["c"]["Text"] = [[Ver. 0.2.3]];
 		tree["c"]["Name"] = [[Version]];
 		tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
 
