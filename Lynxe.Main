@@ -1198,23 +1198,26 @@ function library:CreateWindow(options)
 			end
 		end)
 		
-		NewConnection(UserInputService, "InputBegan", function(input, gpe)
-			if gpe then return end
-			
-			local keybind = options["UIHotkey"]
-			
-			if input.KeyCode == keybind then
-				if tree.UIactive then
-					library:tween(tree["2"], {BackgroundTransparency = 1}, function()
-						tree.UIactive = false
-					end)
-					
-				elseif not tree.UIactive then
-					tree.UIactive = true
-					library:tween(tree["2"], {BackgroundTransparency = 0.2})
+		if library.IsMobile then
+			NewConnection(UserInputService, "InputBegan", function(input, gpe)
+				if gpe then return end
+
+				local keybind = options["UIHotkey"]
+
+				if input.KeyCode == keybind then
+					if tree.UIactive then
+						library:tween(tree["2"], {BackgroundTransparency = 1}, function()
+							tree.UIactive = false
+						end)
+
+					elseif not tree.UIactive then
+						tree.UIactive = true
+						library:tween(tree["2"], {BackgroundTransparency = 0.2})
+					end
 				end
-			end
-		end)
+			end)
+		end
+		
 	end
 	
 	
