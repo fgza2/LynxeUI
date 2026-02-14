@@ -286,6 +286,7 @@ function library:CreateWindow(options)
 	local tree = {
 		CurrentTab = nil, 
 		UIactive = false,
+		ClockMode = false,
 		
 		dragToggle = nil,
 		dragSpeed = 0.25,
@@ -538,7 +539,7 @@ function library:CreateWindow(options)
 		tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
 		tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
 		tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["c"]["Text"] = [[Ver. 0.2.3]];
+		tree["c"]["Text"] = [[Ver. 0.2.8]];
 		tree["c"]["Name"] = [[Version]];
 		tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
 
@@ -1152,7 +1153,6 @@ function library:CreateWindow(options)
 			local CloseButton = tree["2f"]
 			
 			local HotkeyButton = tree["3b"]
-			local ToggleButton = tree["31"]
 
 			local navigation = tree["e"]
 			local Pages = tree["45"]
@@ -1186,6 +1186,7 @@ function library:CreateWindow(options)
 			
 			if not library.IsMobile then
 				NewConnection(HotkeyButton["Button"], "Activated", function()
+					if options["UIHotkey"] ~= nil then options["UIHotkey"] = nil end
 
 					HotkeyButton["Key"].Text = "..."
 					local KeyBind = KeyBinding()
@@ -1196,9 +1197,24 @@ function library:CreateWindow(options)
 					end
 				end)
 			end
+			
 		end)
 		
-		if library.IsMobile then
+		local ToggleButton = tree["31"]
+		
+		NewConnection(ToggleButton["Button"], "Activated", function()
+			if tree["ClockMode"] then
+				tree["ClockMode"] = false
+				library:tween(ToggleButton["Indicate"]["Frame"], {Position = UDim2.new(0, 2, 0, 2)})
+				ToggleButton["Indicate"]["Frame"].BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+			elseif not tree["ClockMode"] then
+				tree["ClockMode"] = true
+				library:tween(ToggleButton["Indicate"]["Frame"], {Position = UDim2.new(0, 26, 0, 2)})
+				ToggleButton["Indicate"]["Frame"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+			end
+		end)
+		
+		if not library.IsMobile then
 			NewConnection(UserInputService, "InputBegan", function(input, gpe)
 				if gpe then return end
 
@@ -1647,8 +1663,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			local exec_name, exec_version = identifyexecutor()
-			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
+			--local exec_name, exec_version = identifyexecutor()
+			--tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
