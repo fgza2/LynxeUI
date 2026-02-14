@@ -10,13 +10,12 @@ local HttpsService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-if CoreGui:FindFirstChild("LynxeUILibrary") then
+if not RunService:IsStudio() and CoreGui:FindFirstChild("LynxeUILibrary") then
 	CoreGui:FindFirstChild("LynxeUILibrary"):Destroy()
 end
 
 -- Variables
 local player = Players.LocalPlayer
-
 
 local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -27,6 +26,23 @@ local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirectio
 
 -- Connections
 Connections = {}
+
+function KeyBinding()
+	local key = nil
+	local connection = nil
+	
+	connection = UserInputService.InputBegan:Connect(function(input, gpe)
+		if gpe then return end
+		
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			key = input.KeyCode
+			connection:Disconnect()
+		end
+	end)
+	
+	repeat task.wait() until key ~= nil
+	return key
+end
 
 function NewConnection(object, event, callback)
 	local connection = object[event]:Connect(callback)
@@ -255,6 +271,8 @@ function library:CreateWindow(options)
 		Name = "Lynxe UI",
 		Icon = "rbxassetid://10709782497",
 		
+		UIHotkey = Enum.KeyCode.P,
+		
 		LoadingTitle = "Title",
 		LoadingDescription = "Title Tip",
 		
@@ -412,12 +430,12 @@ function library:CreateWindow(options)
 			game:GetService("TweenService"):Create(UIFrame, TweenInfo.new(tree.dragSpeed), {Position = position}):Play()
 		end
 
-		UIFrame.InputBegan:Connect(function(input)
+		NewConnection(UIFrame, "InputBegan", function(input)
 			if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 				tree.dragToggle = true
 				tree.dragStart = input.Position
 				tree.startPos = UIFrame.Position
-				input.Changed:Connect(function()
+				NewConnection(input, "Changed", function()
 					if input.UserInputState == Enum.UserInputState.End then
 						tree.dragToggle = false
 					end
@@ -425,7 +443,7 @@ function library:CreateWindow(options)
 			end
 		end)
 
-		UserInputService.InputChanged:Connect(function(input)
+		NewConnection(UserInputService, "InputChanged", function(input)
 			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 				if tree.dragToggle then
 					updateInput(input)
@@ -1132,6 +1150,9 @@ function library:CreateWindow(options)
 		NewConnection(tree["b"], "Activated", function()
 			local SettingsPage = tree["2b"]
 			local CloseButton = tree["2f"]
+			
+			local HotkeyButton = tree["3b"]
+			local ToggleButton = tree["31"]
 
 			local navigation = tree["e"]
 			local Pages = tree["45"]
@@ -1162,10 +1183,38 @@ function library:CreateWindow(options)
 					SettingsPage.Visible = false
 				end)
 			end)
+			
+			if not library.IsMobile then
+				NewConnection(HotkeyButton["Button"], "Activated", function()
+
+					HotkeyButton["Key"].Text = "..."
+					local KeyBind = KeyBinding()
+
+					if KeyBind then
+						HotkeyButton["Key"].Text = KeyBind.Name
+						options["UIHotkey"] = KeyBind
+					end
+				end)
+			end
 		end)
-
-
-
+		
+		NewConnection(UserInputService, "InputBegan", function(input, gpe)
+			if gpe then return end
+			
+			local keybind = options["UIHotkey"]
+			
+			if input.KeyCode == keybind then
+				if tree.UIactive then
+					library:tween(tree["2"], {BackgroundTransparency = 1}, function()
+						tree.UIactive = false
+					end)
+					
+				elseif not tree.UIactive then
+					tree.UIactive = true
+					library:tween(tree["2"], {BackgroundTransparency = 0.2})
+				end
+			end
+		end)
 	end
 	
 	
@@ -1968,6 +2017,8 @@ end
 local Window = library:CreateWindow({
 	Name = "Lynxe UI",
 	Icon = "rbxassetid://10709782497",
+	
+	UIHotkey = Enum.KeyCode.P,
 
 	LoadingTitle = "Title",
 	LoadingDescription = "Title Tip",
@@ -1977,9 +2028,7 @@ local Window = library:CreateWindow({
 	Discord = {
 		Invite = "NoInvite"
 	}
-})
-
-local HomeTab = Window:CreateHomeTab()
+}) HomeTab = Window:CreateHomeTab()
 
 
 local tab1 =  Window:CreateTab({})
