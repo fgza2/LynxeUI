@@ -16,10 +16,9 @@ end
 
 -- Variables
 local player = Players.LocalPlayer
-
 local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
-local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 
+local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
 
@@ -59,14 +58,10 @@ end
 
 
 local library = {}
-library.IsMobile = false
+library.IsMobile = UserInputService.TouchEnabled
 
-if UserInputService.TouchEnabled then 
-	library.IsMobile = true
-end
-
-library["LynxeUILibrary"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
-library["LynxeUILibrary"]["Name"] = "LynxeUILibrary";
+library["Lynxe.Main"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
+library["Lynxe.Main"]["Name"] = "Lynxe.Main";
 
 -- library functions, logic, methods
 function library:validate(defaults, options)
@@ -85,11 +80,34 @@ function library:tween(object, goal, callback)
 end
 
 
--- StarterGui.ScreenGui
-library["NotifyContainer"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
-library["NotifyContainer"]["Name"] = "NotifyContainer";
-library["NotifyContainer"]["Enabled"] = true;
-library["NotifyContainer"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+-- Notifications setup
+do
+	library["1"] = Instance.new("ScreenGui", library["Lynxe.Main"]);
+	library["1"]["IgnoreGuiInset"] = true;
+	library["1"]["DisplayOrder"] = 100;
+	library["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
+	library["1"]["ClipToDeviceSafeArea"] = false;
+	library["1"]["Name"] = [[Notifications]];
+	
+	-- StarterGui.Notifications.Notifications
+	library["2"] = Instance.new("Frame", library["1"]);
+	library["2"]["BorderSizePixel"] = 0;
+	library["2"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+	library["2"]["AnchorPoint"] = Vector2.new(1, 0);
+	library["2"]["Size"] = UDim2.new(0, 250, 1, -13);
+	library["2"]["Position"] = UDim2.new(1, 0, 0, 5);
+	library["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+	library["2"]["Name"] = [[Notifications]];
+	library["2"]["BackgroundTransparency"] = 1;
+
+	-- StarterGui.Notifications.Notifications.UIListLayout
+	library["3"] = Instance.new("UIListLayout", library["2"]);
+	library["3"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
+	library["3"]["Wraps"] = false;
+	library["3"]["Padding"] = UDim.new(0, 8);
+	library["3"]["VerticalAlignment"] = Enum.VerticalAlignment.Bottom;
+	library["3"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+end
 
 function library:Notify(options)
 	options = library:validate({
@@ -99,169 +117,138 @@ function library:Notify(options)
 		Image = "rbxassetid://10723374276"
 	}, options or {})
 	
-	local NotifyUI = { Current = nil, Previous = nil }
-	local Notifications = library["NotifyContainer"]:GetChildren()
-
-	if #Notifications > 2 then
-		repeat task.wait() until #Notifications <= 2
-	end
-
-	-- create UI
+	local UI = {}
+	local Notifications = library["2"]:GetChildren()
+	
+	-- Create Notification
 	do
-		-- StarterGui.ScreenGui.NotifyPrompt
-		NotifyUI["2"] = Instance.new("Frame", library["NotifyContainer"]);
-		NotifyUI["2"]["ZIndex"] = 3;
-		NotifyUI["2"]["BorderSizePixel"] = 0;
-		NotifyUI["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-		NotifyUI["2"]["AnchorPoint"] = Vector2.new(1, 1);
-		NotifyUI["2"]["ClipsDescendants"] = true;
-		NotifyUI["2"]["Size"] = UDim2.new(0, 230, 0, 90);
-		NotifyUI["2"]["Position"] = UDim2.new(1, 240, 1, -10); -- Start off-screen
-		NotifyUI["2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["2"]["Name"] = [[NotifyPrompt]];
-		NotifyUI["2"]["LayoutOrder"] = 3;
-		NotifyUI["2"]["BackgroundTransparency"] = 0.2;
+		-- StarterGui.Notifications.Notifications.NotifyPrompt
+		UI["4"] = Instance.new("Frame", library["2"]);
+		UI["4"]["BorderSizePixel"] = 0;
+		UI["4"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
+		UI["4"]["AnchorPoint"] = Vector2.new(1, 1);
+		UI["4"]["ClipsDescendants"] = true;
+		UI["4"]["Size"] = UDim2.new(0, 230, 0, 90);
+		UI["4"]["Position"] = UDim2.new(1, -10, 1, -10);
+		UI["4"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["4"]["Name"] = [[Notification]];
+		UI["4"]["LayoutOrder"] = 3;
+		UI["4"]["BackgroundTransparency"] = 1;
 
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.DropShadowHolder
+		UI["5"] = Instance.new("Frame", UI["4"]);
+		UI["5"]["ZIndex"] = 0;
+		UI["5"]["BorderSizePixel"] = 0;
+		UI["5"]["Size"] = UDim2.new(1, 0, 1, 0);
+		UI["5"]["Name"] = [[DropShadowHolder]];
+		UI["5"]["BackgroundTransparency"] = 1;
 
-		-- StarterGui.ScreenGui.NotifyPrompt.DropShadowHolder
-		NotifyUI["3"] = Instance.new("Frame", NotifyUI["2"]);
-		NotifyUI["3"]["ZIndex"] = 0;
-		NotifyUI["3"]["BorderSizePixel"] = 0;
-		NotifyUI["3"]["Size"] = UDim2.new(1, 0, 1, 0);
-		NotifyUI["3"]["Name"] = [[DropShadowHolder]];
-		NotifyUI["3"]["BackgroundTransparency"] = 1;
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.DropShadow
+		UI["6"] = Instance.new("ImageLabel", UI["5"]);
+		UI["6"]["ZIndex"] = 0;
+		UI["6"]["BorderSizePixel"] = 0;
+		UI["6"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		UI["6"]["ScaleType"] = Enum.ScaleType.Slice;
+		UI["6"]["ImageTransparency"] = 0.5;
+		UI["6"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		UI["6"]["Image"] = [[rbxassetid://6014261993]];
+		UI["6"]["Size"] = UDim2.new(1, 47, 1, 47);
+		UI["6"]["BackgroundTransparency"] = 1;
+		UI["6"]["Name"] = [[DropShadow]];
+		UI["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
 
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.UICorner
+		UI["7"] = Instance.new("UICorner", UI["4"]);
+		UI["7"]["CornerRadius"] = UDim.new(0.025, 8);
 
-		-- StarterGui.ScreenGui.NotifyPrompt.DropShadowHolder.DropShadow
-		NotifyUI["4"] = Instance.new("ImageLabel", NotifyUI["3"]);
-		NotifyUI["4"]["ZIndex"] = 0;
-		NotifyUI["4"]["BorderSizePixel"] = 0;
-		NotifyUI["4"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
-		NotifyUI["4"]["ScaleType"] = Enum.ScaleType.Slice;
-		NotifyUI["4"]["ImageTransparency"] = 0.5;
-		NotifyUI["4"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["4"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
-		NotifyUI["4"]["Image"] = [[rbxassetid://6014261993]];
-		NotifyUI["4"]["Size"] = UDim2.new(1, 47, 1, 47);
-		NotifyUI["4"]["BackgroundTransparency"] = 1;
-		NotifyUI["4"]["Name"] = [[DropShadow]];
-		NotifyUI["4"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.UIStroke
+		UI["8"] = Instance.new("UIStroke", UI["4"]);
+		UI["8"]["Thickness"] = 1.3;
 
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.Title
+		UI["9"] = Instance.new("TextLabel", UI["4"]);
+		UI["9"]["TextStrokeTransparency"] = 0.5;
+		UI["9"]["BorderSizePixel"] = 0;
+		UI["9"]["TextSize"] = 20;
+		UI["9"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		UI["9"]["TextTransparency"] = 0.15;
+		UI["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["9"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
+		UI["9"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["9"]["BackgroundTransparency"] = 1;
+		UI["9"]["Size"] = UDim2.new(0, 100, 0, 20);
+		UI["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["9"]["Text"] = options["Title"];
+		UI["9"]["Name"] = [[Title]];
+		UI["9"]["Position"] = UDim2.new(0, 33, 0, 5);
 
-		-- StarterGui.ScreenGui.NotifyPrompt.UICorner
-		NotifyUI["5"] = Instance.new("UICorner", NotifyUI["2"]);
-		NotifyUI["5"]["CornerRadius"] = UDim.new(0.025, 8);
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.Info
+		UI["a"] = Instance.new("TextLabel", UI["4"]);
+		UI["a"]["TextWrapped"] = true;
+		UI["a"]["TextStrokeTransparency"] = 0;
+		UI["a"]["BorderSizePixel"] = 0;
+		UI["a"]["TextSize"] = 16;
+		UI["a"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+		UI["a"]["TextTransparency"] = 0.3;
+		UI["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["a"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+		UI["a"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["a"]["BackgroundTransparency"] = 1;
+		UI["a"]["Size"] = UDim2.new(1, -15, 1, -50);
+		UI["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["a"]["Text"] = options["Info"];
+		UI["a"]["Name"] = [[Info]];
+		UI["a"]["Position"] = UDim2.new(0, 7, 0, 35);
 
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.Frame
+		UI["b"] = Instance.new("Frame", UI["4"]);
+		UI["b"]["BorderSizePixel"] = 0;
+		UI["b"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["b"]["Size"] = UDim2.new(1, 0, 0, 1);
+		UI["b"]["Position"] = UDim2.new(0, 0, 0, 30);
+		UI["b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["b"]["BackgroundTransparency"] = 0.5;
 
-		-- StarterGui.ScreenGui.NotifyPrompt.UIStroke
-		NotifyUI["6"] = Instance.new("UIStroke", NotifyUI["2"]);
-		NotifyUI["6"]["Thickness"] = 1.3;
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.DurationBar
+		UI["c"] = Instance.new("Frame", UI["4"]);
+		UI["c"]["BorderSizePixel"] = 0;
+		UI["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["c"]["AnchorPoint"] = Vector2.new(0, 1);
+		UI["c"]["ClipsDescendants"] = true;
+		UI["c"]["Size"] = UDim2.new(1, 0, 0, 1);
+		UI["c"]["Position"] = UDim2.new(0, 0, 1, -3);
+		UI["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["c"]["Name"] = [[DurationBar]];
 
-
-		-- StarterGui.ScreenGui.NotifyPrompt.Title
-		NotifyUI["7"] = Instance.new("TextLabel", NotifyUI["2"]);
-		NotifyUI["7"]["TextStrokeTransparency"] = 0.5;
-		NotifyUI["7"]["BorderSizePixel"] = 0;
-		NotifyUI["7"]["TextSize"] = 20;
-		NotifyUI["7"]["TextXAlignment"] = Enum.TextXAlignment.Left;
-		NotifyUI["7"]["TextTransparency"] = 0.15;
-		NotifyUI["7"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["7"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Bold, Enum.FontStyle.Normal);
-		NotifyUI["7"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["7"]["BackgroundTransparency"] = 1;
-		NotifyUI["7"]["Size"] = UDim2.new(0, 100, 0, 20);
-		NotifyUI["7"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["7"]["Text"] = options["Title"];
-		NotifyUI["7"]["Name"] = [[Title]];
-		NotifyUI["7"]["Position"] = UDim2.new(0, 33, 0, 5);
-
-
-		-- StarterGui.ScreenGui.NotifyPrompt.Info
-		NotifyUI["8"] = Instance.new("TextLabel", NotifyUI["2"]);
-		NotifyUI["8"]["TextStrokeTransparency"] = 0;
-		NotifyUI["8"]["BorderSizePixel"] = 0;
-		NotifyUI["8"]["TextSize"] = 16;
-		NotifyUI["8"]["TextXAlignment"] = Enum.TextXAlignment.Left;
-		NotifyUI["8"]["TextTransparency"] = 0.3;
-		NotifyUI["8"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["8"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-		NotifyUI["8"]["TextWrapped"] = true;
-		NotifyUI["8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["8"]["BackgroundTransparency"] = 1;
-		NotifyUI["8"]["Size"] = UDim2.new(1, -15, 1, -50);
-		NotifyUI["8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["8"]["Text"] = options["Info"];
-		NotifyUI["8"]["Name"] = [[Info]];
-		NotifyUI["8"]["Position"] = UDim2.new(0, 7, 0, 35);
-
-
-		-- StarterGui.ScreenGui.NotifyPrompt.Frame
-		NotifyUI["9"] = Instance.new("Frame", NotifyUI["2"]);
-		NotifyUI["9"]["BorderSizePixel"] = 0;
-		NotifyUI["9"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["9"]["Size"] = UDim2.new(1, 0, 0, 1);
-		NotifyUI["9"]["Position"] = UDim2.new(0, 0, 0, 30);
-		NotifyUI["9"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["9"]["BackgroundTransparency"] = 0.5;
-
-
-		-- StarterGui.ScreenGui.NotifyPrompt.DurationBar
-		NotifyUI["a"] = Instance.new("Frame", NotifyUI["2"]);
-		NotifyUI["a"]["BorderSizePixel"] = 0;
-		NotifyUI["a"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["a"]["AnchorPoint"] = Vector2.new(0, 1);
-		NotifyUI["a"]["ClipsDescendants"] = true;
-		NotifyUI["a"]["Size"] = UDim2.new(1, 0, 0, 1);
-		NotifyUI["a"]["Position"] = UDim2.new(0, 0, 1, -3);
-		NotifyUI["a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["a"]["Name"] = [[DurationBar]];
-
-
-		-- StarterGui.ScreenGui.NotifyPrompt.DurationBar.UICorner
-		NotifyUI["b"] = Instance.new("UICorner", NotifyUI["a"]);
-		NotifyUI["b"]["CornerRadius"] = UDim.new(1, 0);
-
-
-		-- StarterGui.ScreenGui.NotifyPrompt.Image
-		NotifyUI["c"] = Instance.new("ImageLabel", NotifyUI["2"]);
-		NotifyUI["c"]["BorderSizePixel"] = 0;
-		NotifyUI["c"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-		NotifyUI["c"]["Image"] = options["Image"];
-		NotifyUI["c"]["Size"] = UDim2.new(0, 23, 0, 23);
-		NotifyUI["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		NotifyUI["c"]["BackgroundTransparency"] = 1;
-		NotifyUI["c"]["Name"] = [[Image]];
-		NotifyUI["c"]["Position"] = UDim2.new(1, -224, 0, 3);
-	end
-	
-	if library.IsMobile then
-		local MobileScale = Instance.new("UIScale", NotifyUI["2"])
-		MobileScale.Scale = 0.7 
-	end
-	
-	local Notifications = library["NotifyContainer"]:GetChildren()
-	
-	for i, notification in ipairs(Notifications) do
-		local targetY = -10 - (i * 100)
-		library:tween(notification, {Position = UDim2.new(1, -10, 1, targetY)})
-	end
-	
-	library:tween(NotifyUI["2"], {Position = UDim2.new(1, -10, 1, -10)}, function() 
-		local durationBarTweenInfo = TweenInfo.new(options["Duration"], Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-		local durationBarTween = TweenService:Create(NotifyUI["a"], durationBarTweenInfo, {Size = UDim2.new(0, 0, 0, 1)})
-		durationBarTween:Play()
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.DurationBar.UICorner
+		UI["d"] = Instance.new("UICorner", UI["c"]);
+		UI["d"]["CornerRadius"] = UDim.new(1, 0);
 		
-		task.wait(options["Duration"])
-		library:tween(NotifyUI["2"], {BackgroundTransparency = 1}, function() NotifyUI["2"]:Destroy() end)
-	end)
-	
-	if #Notifications > 0 then
-		NotifyUI.Previous = Notifications[#Notifications]
-	else
-		NotifyUI.Previous = nil
+		-- StarterGui.Notifications.Notifications.NotifyPrompt.Image
+		UI["e"] = Instance.new("ImageLabel", UI["4"]);
+		UI["e"]["BorderSizePixel"] = 0;
+		UI["e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+		UI["e"]["Image"] = options["Image"];
+		UI["e"]["Size"] = UDim2.new(0, 23, 0, 23);
+		UI["e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+		UI["e"]["BackgroundTransparency"] = 1;
+		UI["e"]["Name"] = [[Image]];
+		UI["e"]["Position"] = UDim2.new(1, -224, 0, 3);
+		
+		if library.IsMobile then
+			local MS = Instance.new("UIScale", UI["4"]) MS.Scale = 0.7 
+		end
 	end
 	
-	NotifyUI.Current = NotifyUI["2"]
+	library:tween(UI["4"], {BackgroundTransparency = 0.2})
+	
+	library:tween(UI["4"], {Position = UDim2.new(1, -10, 1, -10)}, function() 
+		local durationBarTween = TweenService:Create(UI["c"], TweenInfo.new(options["Duration"]), {Size = UDim2.new(0, 0, 0, 1)}):Play()
+		task.wait(options["Duration"])
+		
+		library:tween(UI["4"], {BackgroundTransparency = 1}, function() UI["4"]:Destroy() end)
+	end)
 end
 
 
@@ -286,29 +273,26 @@ function library:CreateWindow(options)
 	local tree = {
 		CurrentTab = nil, 
 		UIactive = false,
-		ClockMode = false,
-		
-		dragToggle = nil,
-		dragSpeed = 0.25,
-		dragStart = nil,
-		startPos = nil
+		ClockMode = false
 	}	
 	
-	 -- Main Window
+	
+	-- Main Window
 	do
 		-- StarterGui.UI
-		tree["1"] = Instance.new("ScreenGui", library["LynxeUILibrary"]);
+		tree["1"] = Instance.new("ScreenGui", library["Lynxe.Main"]);
 		tree["1"]["IgnoreGuiInset"] = true;
-		tree["1"]["DisplayOrder"] = 5;
+		tree["1"]["DisplayOrder"] = 100;
 		tree["1"]["ScreenInsets"] = Enum.ScreenInsets.DeviceSafeInsets;
+		tree["1"]["ClipToDeviceSafeArea"] = false;
 		tree["1"]["Name"] = [[UI]];
-		tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Sibling;
+		tree["1"]["ZIndexBehavior"] = Enum.ZIndexBehavior.Global;
 
 
 		-- StarterGui.UI.Window
 		tree["2"] = Instance.new("Frame", tree["1"]);
 		tree["2"]["Visible"] = tree["UIactive"];
-		tree["2"]["ZIndex"] = 3;
+		tree["2"]["ZIndex"] = 1;
 		tree["2"]["BorderSizePixel"] = 0;
 		tree["2"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 		tree["2"]["Size"] = UDim2.new(0, 500, 0, 350);
@@ -327,29 +311,42 @@ function library:CreateWindow(options)
 		tree["4"] = Instance.new("UIStroke", tree["2"]);
 
 
-		-- StarterGui.UI.Window.DropShadowHolder
-		tree["5"] = Instance.new("Frame", tree["2"]);
-		tree["5"]["ZIndex"] = 0;
-		tree["5"]["BorderSizePixel"] = 0;
-		tree["5"]["Size"] = UDim2.new(1, 0, 1, 0);
-		tree["5"]["Name"] = [[DropShadowHolder]];
-		tree["5"]["BackgroundTransparency"] = 1;
+		-- StarterGui.UI.Window.Shadow
+		tree["4e"] = Instance.new("Frame", tree["2"]);
+		tree["4e"]["BorderSizePixel"] = 0;
+		tree["4e"]["Size"] = UDim2.new(1, 0, 1, 0);
+		tree["4e"]["Name"] = [[Shadow]];
+		tree["4e"]["BackgroundTransparency"] = 1;
 
 
-		-- StarterGui.UI.Window.DropShadowHolder.DropShadow
-		tree["6"] = Instance.new("ImageLabel", tree["5"]);
-		tree["6"]["ZIndex"] = 0;
-		tree["6"]["BorderSizePixel"] = 0;
-		tree["6"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
-		tree["6"]["ScaleType"] = Enum.ScaleType.Slice;
-		tree["6"]["ImageTransparency"] = 0.3;
-		tree["6"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["6"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
-		tree["6"]["Image"] = [[rbxassetid://6014261993]];
-		tree["6"]["Size"] = UDim2.new(1, 47, 1, 47);
-		tree["6"]["BackgroundTransparency"] = 1;
-		tree["6"]["Name"] = [[DropShadow]];
-		tree["6"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+		-- StarterGui.UI.Window.Shadow.DropShadow
+		tree["5e"] = Instance.new("ImageLabel", tree["4e"]);
+		tree["5e"]["BorderSizePixel"] = 0;
+		tree["5e"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		tree["5e"]["ScaleType"] = Enum.ScaleType.Slice;
+		tree["5e"]["ImageTransparency"] = 0.4;
+		tree["5e"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["5e"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		tree["5e"]["Image"] = [[rbxassetid://6014261993]];
+		tree["5e"]["Size"] = UDim2.new(1, 47, 1, 47);
+		tree["5e"]["BackgroundTransparency"] = 1;
+		tree["5e"]["Name"] = [[DropShadow]];
+		tree["5e"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
+
+
+		-- StarterGui.UI.Window.Shadow.DropShadow2
+		tree["6e"] = Instance.new("ImageLabel", tree["4e"]);
+		tree["6e"]["ZIndex"] = 0;
+		tree["6e"]["BorderSizePixel"] = 0;
+		tree["6e"]["SliceCenter"] = Rect.new(49, 49, 450, 450);
+		tree["6e"]["ImageTransparency"] = 0.45;
+		tree["6e"]["ImageColor3"] = Color3.fromRGB(0, 0, 0);
+		tree["6e"]["AnchorPoint"] = Vector2.new(0.5, 0.5);
+		tree["6e"]["Image"] = [[rbxassetid://5587865193]];
+		tree["6e"]["Size"] = UDim2.new(1.6, 0, 1.3, 0);
+		tree["6e"]["BackgroundTransparency"] = 1;
+		tree["6e"]["Name"] = [[DropShadow2]];
+		tree["6e"]["Position"] = UDim2.new(0.5, 0, 0.5, 0);
 	end
 	
 	NewConnection(RunService, "Heartbeat", function()
@@ -368,9 +365,9 @@ function library:CreateWindow(options)
 			tree["e1"]["ZIndex"] = 3;
 			tree["e1"]["BorderSizePixel"] = 0;
 			tree["e1"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
-			tree["e1"]["AnchorPoint"] = Vector2.new(1, 1);
+			tree["e1"]["AnchorPoint"] = Vector2.new(1, 0);
 			tree["e1"]["Size"] = UDim2.new(0, 40, 0, 40);
-			tree["e1"]["Position"] = UDim2.new(1, -10, 1, -340);
+			tree["e1"]["Position"] = UDim2.new(1, -10, 0, 10);
 			tree["e1"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tree["e1"]["Name"] = [[ToggleUI]];
 			tree["e1"]["LayoutOrder"] = 3;
@@ -424,31 +421,31 @@ function library:CreateWindow(options)
 	-- Draggable Window logic
 	do
 		local UIFrame = tree["2"]
-
-		local function updateInput(input)
-			local delta = input.Position - tree.dragStart
-			local position = UDim2.new(tree.startPos.X.Scale, tree.startPos.X.Offset + delta.X, tree.startPos.Y.Scale, tree.startPos.Y.Offset + delta.Y)
-			game:GetService("TweenService"):Create(UIFrame, TweenInfo.new(tree.dragSpeed), {Position = position}):Play()
-		end
-
-		NewConnection(UIFrame, "InputBegan", function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-				tree.dragToggle = true
-				tree.dragStart = input.Position
-				tree.startPos = UIFrame.Position
-				NewConnection(input, "Changed", function()
-					if input.UserInputState == Enum.UserInputState.End then
-						tree.dragToggle = false
-					end
-				end)
+		
+		local isDragging = false
+		local dragStartPos = Vector2.new(0, 0)
+		local frameStartPos = UDim2.new(0, 0, 0, 0)
+		
+		UIFrame.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				isDragging = true
+				dragStartPos = input.Position
+				frameStartPos = UIFrame.Position
 			end
 		end)
-
-		NewConnection(UserInputService, "InputChanged", function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-				if tree.dragToggle then
-					updateInput(input)
-				end
+		
+		UserInputService.InputChanged:Connect(function(input)
+			if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				local delta = input.Position - dragStartPos
+				local targetPos = UDim2.new(frameStartPos.X.Scale, frameStartPos.X.Offset + delta.X, frameStartPos.Y.Scale, frameStartPos.Y.Offset + delta.Y)
+				
+				TweenService:Create(UIFrame, TweenInfo.new(0.16), {Position = targetPos}):Play()
+			end
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				isDragging = false
 			end
 		end)
 	end
@@ -539,7 +536,7 @@ function library:CreateWindow(options)
 		tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
 		tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
 		tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["c"]["Text"] = [[Ver. 0.2.8]];
+		tree["c"]["Text"] = [[Ver. 1.0.0]];
 		tree["c"]["Name"] = [[Version]];
 		tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
 
@@ -569,7 +566,7 @@ function library:CreateWindow(options)
 				-- StarterGui.UI.Window.ClosePrompt
 				tree["1e"] = Instance.new("Frame", tree["2"]);
 				tree["1e"]["Visible"] = true;
-				tree["1e"]["ZIndex"] = 3;
+				tree["1e"]["ZIndex"] = 1;
 				tree["1e"]["BorderSizePixel"] = 0;
 				tree["1e"]["BackgroundColor3"] = Color3.fromRGB(0, 0, 0);
 				tree["1e"]["Size"] = UDim2.new(1, 0, 1, 0);
@@ -695,7 +692,7 @@ function library:CreateWindow(options)
 				tree["2a"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
 			end
 
-			local UI = library["LynxeUILibrary"]
+			local UI = library["Lynxe.Main"]
 			local ClosePromptUI = tree["1e"]
 
 			local OptionOne = tree["25"] -- yes
@@ -908,7 +905,7 @@ function library:CreateWindow(options)
 		-- StarterGui.UI.Window.SettingsPage
 		tree["2b"] = Instance.new("Frame", tree["2"]);
 		tree["2b"]["Visible"] = false;
-		tree["2b"]["ZIndex"] = 3;
+		tree["2b"]["ZIndex"] = 1;
 		tree["2b"]["BorderSizePixel"] = 0;
 		tree["2b"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 		tree["2b"]["Size"] = UDim2.new(1, 0, 1, 0);
@@ -1242,7 +1239,7 @@ function library:CreateWindow(options)
 		-- StarterGui.UI.LoadingWindow
 		tree["cd"] = Instance.new("Frame", tree["1"]);
 		tree["cd"]["Visible"] = true;
-		tree["cd"]["ZIndex"] = 3;
+		tree["cd"]["ZIndex"] = 1;
 		tree["cd"]["BorderSizePixel"] = 0;
 		tree["cd"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 		tree["cd"]["Size"] = UDim2.new(0, 300, 0, 200);
@@ -1404,39 +1401,35 @@ function library:CreateWindow(options)
 
 	-- UI loading
 	local function loadUI()
-		task.spawn(function()
-			library:tween(tree["cd"], {BackgroundTransparency = 0.2})
-			library:tween(tree["cf"], {ImageTransparency = 0.5})
-			library:tween(tree["d1"], {Transparency = 0})
-			library:tween(tree["d2"], {TextTransparency = 0.15})
-			library:tween(tree["d3"], {TextTransparency = 0.15})
-			library:tween(tree["d4"], {TextTransparency = 0.3})
-			library:tween(tree["d5"], {TextTransparency = 0.15})
-			library:tween(tree["d6"], {BackgroundTransparency = 0.5})
-			library:tween(tree["d7"], {TextTransparency = 0.3})
-			library:tween(tree["d8"], {ImageTransparency = 0.15})
+		library:tween(tree["cd"], {BackgroundTransparency = 0.2})
+		library:tween(tree["cf"], {ImageTransparency = 0.5})
+		library:tween(tree["d1"], {Transparency = 0})
+		library:tween(tree["d2"], {TextTransparency = 0.15})
+		library:tween(tree["d3"], {TextTransparency = 0.15})
+		library:tween(tree["d4"], {TextTransparency = 0.3})
+		library:tween(tree["d5"], {TextTransparency = 0.15})
+		library:tween(tree["d6"], {BackgroundTransparency = 0.5})
+		library:tween(tree["d7"], {TextTransparency = 0.3})
+		library:tween(tree["d8"], {ImageTransparency = 0.15})
 
-			local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
-			rotateTween:Play()
-		end)
+		local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
+		rotateTween:Play()
 
-		task.wait(3)
+		task.wait(2)
 
-		task.spawn(function()
-			library:tween(tree["cd"], {BackgroundTransparency = 1})
-			library:tween(tree["cf"], {ImageTransparency = 1})
-			library:tween(tree["d1"], {Transparency = 1})
-			library:tween(tree["d2"], {TextTransparency = 1})
-			library:tween(tree["d3"], {TextTransparency = 1})
-			library:tween(tree["d4"], {TextTransparency = 1})
-			library:tween(tree["d5"], {TextTransparency = 1})
-			library:tween(tree["d6"], {BackgroundTransparency = 1})
-			library:tween(tree["d7"], {TextTransparency = 1})
-			library:tween(tree["d8"], {ImageTransparency = 1})
+		library:tween(tree["cd"], {BackgroundTransparency = 1})
+		library:tween(tree["cf"], {ImageTransparency = 1})
+		library:tween(tree["d1"], {Transparency = 1})
+		library:tween(tree["d2"], {TextTransparency = 1})
+		library:tween(tree["d3"], {TextTransparency = 1})
+		library:tween(tree["d4"], {TextTransparency = 1})
+		library:tween(tree["d5"], {TextTransparency = 1})
+		library:tween(tree["d6"], {BackgroundTransparency = 1})
+		library:tween(tree["d7"], {TextTransparency = 1})
+		library:tween(tree["d8"], {ImageTransparency = 1})
 
-			local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
-			rotateTween:Play()
-		end)
+		local rotateTween = TweenService:Create(tree["d8"], rotateInfo, {Rotation = 360})
+		rotateTween:Play()
 
 		task.wait(1)
 		tree["cd"]:Destroy()
@@ -1663,8 +1656,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			--local exec_name, exec_version = identifyexecutor()
-			--tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
+			local exec_name, exec_version = identifyexecutor()
+			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
@@ -1823,12 +1816,35 @@ function library:CreateWindow(options)
 					return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 				end
 				
+				-- converting 24-hour to 12-hour formatting
+				local function formatTime(hour24, minute, second, is12Hour)
+					if not is12Hour then
+						return string.format("%02d:%02d:%02d", hour24, minute, second)
+					end
+					
+					local period = "AM"
+					local hour12 = hour24
+					
+					if hour24 >= 12 then
+						period = "PM"
+						if hour24 > 12 then
+							hour12 = hour24 - 12
+						end
+					elseif hour24 == 0 then
+						hour12 = 12
+					end
+					
+					return string.format("%d:%02d:%02d %s", hour12, minute, second, period)
+				end
+				
 				while true do
 					local currentTime = DateTime.now()
 					local timeString = currentTime:FormatLocalTime("HH:mm:ss", "en-us")
 					
 					local utcTime = currentTime:FormatUniversalTime("HH:mm:ss", "en-us")
 					local localHour = tonumber(string.sub(timeString, 1, 2))
+					local localMinute = tonumber(string.sub(timeString, 4, 5))
+					local localSecond = tonumber(string.sub(timeString, 7, 8))
 					
 					local utcHour = tonumber(string.sub(utcTime, 1, 2))
 					local offset = localHour - utcHour
@@ -1837,13 +1853,14 @@ function library:CreateWindow(options)
 					if offset < -12 then offset = offset + 24 end
 					
 					local timeZoneAbbrev = getTimeZoneFromOffset(offset)
-					tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")"
+					local formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
+					
+					tab["52"]["Text"] = [[Time: ]] .. formattedTime .. " (" .. timeZoneAbbrev .. ")"
 					
 					task.wait(1)
 				end
 			end)
 		end
-		
 		return tab
 	end
 	
