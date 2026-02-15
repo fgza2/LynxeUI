@@ -10,8 +10,8 @@ local HttpsService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-if not RunService:IsStudio() and CoreGui:FindFirstChild("LynxeUILibrary") then
-	CoreGui:FindFirstChild("LynxeUILibrary"):Destroy()
+if not RunService:IsStudio() and CoreGui:FindFirstChild("Lynxe.Main") then
+	CoreGui:FindFirstChild("Lynxe.Main"):Destroy()
 end
 
 -- Variables
@@ -238,7 +238,6 @@ function library:Notify(options)
 		
 		if library.IsMobile then
 			local MS = Instance.new("UIScale", UI["4"]) MS.Scale = 0.7 
-			library["2"].Size = UDim2.new(1, 15, 0, 5);
 		end
 	end
 	
