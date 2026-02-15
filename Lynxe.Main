@@ -238,6 +238,7 @@ function library:Notify(options)
 		
 		if library.IsMobile then
 			local MS = Instance.new("UIScale", UI["4"]) MS.Scale = 0.7 
+			library["2"].Size = UDim2.new(1, 15, 0, 5);
 		end
 	end
 	
@@ -362,7 +363,7 @@ function library:CreateWindow(options)
 			-- StarterGui.UI.ToggleUI
 			tree["e1"] = Instance.new("Frame", tree["1"]);
 			tree["e1"]["Visible"] = false;
-			tree["e1"]["ZIndex"] = 3;
+			tree["e1"]["ZIndex"] = 1;
 			tree["e1"]["BorderSizePixel"] = 0;
 			tree["e1"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 			tree["e1"]["AnchorPoint"] = Vector2.new(1, 0);
@@ -1656,8 +1657,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			local exec_name, exec_version = identifyexecutor()
-			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
+			--local exec_name, exec_version = identifyexecutor()
+			--tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
