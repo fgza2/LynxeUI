@@ -16,6 +16,7 @@ end
 
 -- Variables
 local player = Players.LocalPlayer
+local mouse = player:GetMouse()
 local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -1966,6 +1967,8 @@ function library:CreateWindow(options)
 			tab["53"]["Size"] = UDim2.new(1, 0, 1, 0);
 			tab["53"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["53"]["ScrollBarThickness"] = 2;
+			tab["53"]["ScrollBarImageTransparency"] = 1;
+			tab["53"]["ScrollingEnabled"] = true;
 			tab["53"]["BackgroundTransparency"] = 1;
 			
 
@@ -2044,6 +2047,500 @@ function library:CreateWindow(options)
 			end
 		end
 		
+		function tab:CreateSection(options)
+			options = library:validate({ 
+				Name = "Test Section" 
+			}, options or {})
+			
+			local section = {}
+			
+			-- Create section
+			do
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne
+				section["5a"] = Instance.new("Frame", tab["53"]);
+				section["5a"]["BorderSizePixel"] = 0;
+				section["5a"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36);
+				section["5a"]["AutomaticSize"] = Enum.AutomaticSize.Y;
+				section["5a"]["Size"] = UDim2.new(1, -30, 0, 170);
+				section["5a"]["Position"] = UDim2.new(0, 15, 0, 15);
+				section["5a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				section["5a"]["Name"] = options["Name"];
+				section["5a"]["BackgroundTransparency"] = 0.7;
+
+
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UICorner
+				section["5b"] = Instance.new("UICorner", section["5a"]);
+				section["5b"]["CornerRadius"] = UDim.new(0, 5);
+
+
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIStroke
+				section["5c"] = Instance.new("UIStroke", section["5a"]);
+				section["5c"]["Thickness"] = 0.5;
+				section["5c"]["Color"] = Color3.fromRGB(51, 51, 51);
+
+
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Title
+				section["5d"] = Instance.new("TextLabel", section["5a"]);
+				section["5d"]["TextWrapped"] = true;
+				section["5d"]["TextStrokeTransparency"] = 0.5;
+				section["5d"]["BorderSizePixel"] = 0;
+				section["5d"]["TextSize"] = 14;
+				section["5d"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+				section["5d"]["TextTransparency"] = 0.5;
+				section["5d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+				section["5d"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+				section["5d"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+				section["5d"]["BackgroundTransparency"] = 1;
+				section["5d"]["AnchorPoint"] = Vector2.new(1, 0);
+				section["5d"]["Size"] = UDim2.new(0, 150, 0, 20);
+				section["5d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+				section["5d"]["Text"] = options["Name"];
+				section["5d"]["Name"] = [[Title]];
+				section["5d"]["Position"] = UDim2.new(0, 105, 0, 5);
+
+
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIListLayout
+				section["5e"] = Instance.new("UIListLayout", section["5a"]);
+				section["5e"]["Padding"] = UDim.new(0, 10);
+				section["5e"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+
+
+				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIPadding
+				section["5f"] = Instance.new("UIPadding", section["5a"]);
+				section["5f"]["PaddingTop"] = UDim.new(0, 5);
+				section["5f"]["PaddingRight"] = UDim.new(0, 5);
+				section["5f"]["PaddingLeft"] = UDim.new(0, 5);
+				section["5f"]["PaddingBottom"] = UDim.new(0, 10);
+			end
+			
+			-- offset scaling
+			local function updateCanvasSize()
+				
+				local page = tab["53"]
+				local totalHeight = 0
+				
+				for _, child in pairs(page:GetChildren()) do
+					if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
+						local childSize = child.AbsoluteSize
+						
+						if childSize.Y > 0 then
+							totalHeight = totalHeight + childSize.Y
+						else
+							totalHeight = totalHeight + child.Size.Y.Offset
+						end
+						totalHeight = totalHeight + 20
+					end
+				end
+				
+				totalHeight = totalHeight + 20
+				page.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+			end
+			
+			task.wait(0.1)
+			updateCanvasSize()
+			
+			NewConnection(section["5a"], "ChildAdded", function()
+				task.wait(0.1)
+				updateCanvasSize()
+			end)
+			
+			NewConnection(section["5a"], "ChildRemoved", function()
+				task.wait(0.1)
+				updateCanvasSize()
+			end)
+
+			NewConnection(tab["53"], "ChildAdded", function(child)
+				if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
+					task.wait(0.1)
+					updateCanvasSize()
+				end
+			end)
+			
+			NewConnection(tab["53"], "ChildRemoved", function()
+				task.wait(0.1)
+				updateCanvasSize()
+			end)
+			
+			function section:CreateButton(options)
+				options = library:validate({
+					Name = "Test Button",
+					CallBack = function() end
+				}, options or {})
+				
+				local button = {
+					Hover = false,
+					MouseDown = false,
+				}
+				
+				-- Create button
+				do
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button
+					button["60"] = Instance.new("Frame", section["5a"]);
+					button["60"]["BorderSizePixel"] = 0;
+					button["60"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					button["60"]["Size"] = UDim2.new(1, -1, 0, 30);
+					button["60"]["Position"] = UDim2.new(0, 50, 0, 50);
+					button["60"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					button["60"]["Name"] = [[Button]];
+					button["60"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.UICorner
+					button["61"] = Instance.new("UICorner", button["60"]);
+					button["61"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.UIStroke
+					button["63"] = Instance.new("UIStroke", button["60"]);
+					button["63"]["Thickness"] = 0.7;
+					button["63"]["Color"] = Color3.fromRGB(100, 100, 100);
+					button["63"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+					
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.Indicate
+					button["64"] = Instance.new("ImageLabel", button["60"]);
+					button["64"]["BorderSizePixel"] = 0;
+					button["64"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					button["64"]["BackgroundTransparency"] = 1;
+					button["64"]["ImageColor3"] = Color3.fromRGB(170, 170, 170);
+					button["64"]["AnchorPoint"] = Vector2.new(1, 0);
+					button["64"]["Image"] = [[rbxassetid://10734898355]];
+					button["64"]["Size"] = UDim2.new(0, 20, 0, 20);
+					button["64"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					button["64"]["Name"] = [[Indicate]];
+					button["64"]["Position"] = UDim2.new(1, -15, 0, 6);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.Indicate.UICorner
+					button["65"] = Instance.new("UICorner", button["64"]);
+					button["65"]["CornerRadius"] = UDim.new(0, 5);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.Name
+					button["66"] = Instance.new("TextLabel", button["60"]);
+					button["66"]["BorderSizePixel"] = 0;
+					button["66"]["TextSize"] = 15;
+					button["66"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					button["66"]["TextTransparency"] = 0.5;
+					button["66"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					button["66"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					button["66"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					button["66"]["BackgroundTransparency"] = 1;
+					button["66"]["Size"] = UDim2.new(1, 0, 0, 15);
+					button["66"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					button["66"]["Text"] = options["Name"];
+					button["66"]["Name"] = [[Name]];
+					button["66"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Button.Name.UIPadding
+					button["67"] = Instance.new("UIPadding", button["66"]);
+					button["67"]["PaddingTop"] = UDim.new(0, 6);
+					button["67"]["PaddingRight"] = UDim.new(0, 6);
+					button["67"]["PaddingLeft"] = UDim.new(0, 6);
+					button["67"]["PaddingBottom"] = UDim.new(0, 6);
+				end
+				
+				-- button logic
+				do
+					NewConnection(button["60"], "MouseEnter", function()
+						button.Hover = true
+						TweenService:Create(button["66"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+						TweenService:Create(button["63"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+						TweenService:Create(button["64"], TweenInfo.new(0.25), {ImageColor3 = Color3.fromRGB(230, 230, 230)}):Play()
+					end)
+					
+					NewConnection(button["60"], "MouseLeave", function()
+						button.Hover = false
+						
+						if not button.MouseDown then
+							TweenService:Create(button["66"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(button["63"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+							TweenService:Create(button["64"], TweenInfo.new(0.25), {ImageColor3 = Color3.fromRGB(170, 170, 170)}):Play()
+						end
+					end)
+					
+					NewConnection(UserInputService, "InputBegan", function(input, gpe)
+						--if gpe then return end
+						
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and button.Hover then
+							button.MouseDown = true
+							if options.CallBack then options.CallBack() end
+							TweenService:Create(button["60"], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
+						end
+					end)
+					
+					NewConnection(UserInputService, "InputEnded", function(input, gpe)
+						--if gpe then return end
+
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+							button.MouseDown = false
+							
+							if button.Hover then
+								TweenService:Create(button["60"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							else
+								TweenService:Create(button["60"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+								TweenService:Create(button["66"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								TweenService:Create(button["63"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+								TweenService:Create(button["64"], TweenInfo.new(0.25), {ImageColor3 = Color3.fromRGB(170, 170, 170)}):Play()
+							end
+						end
+					end)
+				end
+			end
+			
+			
+			function section:CreateToggle(options)
+				options = library:validate({
+					Name = "Test Button",
+					CallBack = function() end
+				}, options or {})
+
+				local button = {
+					Hover = false,
+					MouseDown = false,
+				}
+				
+				
+				-- Create Toggle
+				do
+					
+				end
+				
+				
+			end
+			
+			function section:CreateSlider(options)
+				options = library:validate({
+					Name = "Test Slider",
+					Value = 1,
+					Range = {min = 0, max = 100},
+					Increment = 1,
+					Flag = "slider1",
+					CallBack = function(Value) print(Value) end
+				}, options or {})
+
+				local slider = {
+					Hover = false,
+					MouseDown = false,
+					Connection = nil
+				}
+
+				-- Create Slider
+				do
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider
+					slider["73"] = Instance.new("Frame", section["5a"]);
+					slider["73"]["BorderSizePixel"] = 0;
+					slider["73"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					slider["73"]["Size"] = UDim2.new(1, -1, 0, 45);
+					slider["73"]["Position"] = UDim2.new(0, 50, 0, 50);
+					slider["73"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["73"]["Name"] = [[Slider]];
+					slider["73"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.UICorner
+					slider["74"] = Instance.new("UICorner", slider["73"]);
+					slider["74"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.UIStroke
+					slider["75"] = Instance.new("UIStroke", slider["73"]);
+					slider["75"]["Thickness"] = 0.7;
+					slider["75"]["Color"] = Color3.fromRGB(101, 101, 101);
+					slider["75"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack
+					slider["76"] = Instance.new("Frame", slider["73"]);
+					slider["76"]["BorderSizePixel"] = 0;
+					slider["76"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+					slider["76"]["AnchorPoint"] = Vector2.new(0, 1);
+					slider["76"]["Size"] = UDim2.new(1, -15, 0, 3);
+					slider["76"]["Position"] = UDim2.new(0, 7, 1, -10);
+					slider["76"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["76"]["Name"] = [[SliderBack]];
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.UIStroke
+					slider["77"] = Instance.new("UIStroke", slider["76"]);
+					slider["77"]["Thickness"] = 0.8;
+					slider["77"]["Color"] = Color3.fromRGB(101, 101, 101);
+					slider["77"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.UICorner
+					slider["78"] = Instance.new("UICorner", slider["76"]);
+					slider["78"]["CornerRadius"] = UDim.new(0, 4);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.Dragbar
+					slider["79"] = Instance.new("Frame", slider["76"]);
+					slider["79"]["BorderSizePixel"] = 0;
+					slider["79"]["BackgroundColor3"] = Color3.fromRGB(100, 100, 100);
+					slider["79"]["Size"] = UDim2.new(0.5, 0, 1, 0);
+					slider["79"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["79"]["Name"] = [[Dragbar]];
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.Dragbar.UICorner
+					slider["7a"] = Instance.new("UICorner", slider["79"]);
+					slider["7a"]["CornerRadius"] = UDim.new(0, 4);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.Dragbar.Circle
+					slider["7b"] = Instance.new("Frame", slider["79"]);
+					slider["7b"]["BorderSizePixel"] = 0;
+					slider["7b"]["BackgroundColor3"] = Color3.fromRGB(101, 101, 101);
+					slider["7b"]["AnchorPoint"] = Vector2.new(1, 0);
+					slider["7b"]["Size"] = UDim2.new(0, 15, 0, 15);
+					slider["7b"]["Position"] = UDim2.new(1, 10, 0, -6);
+					slider["7b"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["7b"]["Name"] = [[Circle]];
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.SliderBack.Dragbar.Circle.UICorner
+					slider["7c"] = Instance.new("UICorner", slider["7b"]);
+					slider["7c"]["CornerRadius"] = UDim.new(1, 0);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.Value
+					slider["7d"] = Instance.new("TextBox", slider["73"]);
+					slider["7d"]["Active"] = false;
+					slider["7d"]["Name"] = [[Value]];
+					slider["7d"]["BorderSizePixel"] = 0;
+					slider["7d"]["TextTransparency"] = 0.5;
+					slider["7d"]["TextSize"] = 15;
+					slider["7d"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					slider["7d"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					slider["7d"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					slider["7d"]["Selectable"] = false;
+					slider["7d"]["AnchorPoint"] = Vector2.new(1, 0);
+					slider["7d"]["Size"] = UDim2.new(0, 30, 0, 20);
+					slider["7d"]["Position"] = UDim2.new(1, -7, 0, 3);
+					slider["7d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["7d"]["Text"] = tostring(options["Value"]);
+					slider["7d"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.Name
+					slider["7e"] = Instance.new("TextLabel", slider["73"]);
+					slider["7e"]["BorderSizePixel"] = 0;
+					slider["7e"]["TextSize"] = 15;
+					slider["7e"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					slider["7e"]["TextTransparency"] = 0.5;
+					slider["7e"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					slider["7e"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					slider["7e"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					slider["7e"]["BackgroundTransparency"] = 1;
+					slider["7e"]["Size"] = UDim2.new(1, 0, 0, 15);
+					slider["7e"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					slider["7e"]["Text"] = options["Name"];
+					slider["7e"]["Name"] = [[Name]];
+					slider["7e"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Slider.Name.UIPadding
+					slider["7f"] = Instance.new("UIPadding", slider["7e"]);
+					slider["7f"]["PaddingTop"] = UDim.new(0, 6);
+					slider["7f"]["PaddingRight"] = UDim.new(0, 6);
+					slider["7f"]["PaddingLeft"] = UDim.new(0, 6);
+					slider["7f"]["PaddingBottom"] = UDim.new(0, 6);
+				end
+				
+				
+				-- methods, functions
+				function slider:SetValue(value)
+					if value == nil then
+						local ps = math.clamp((mouse.X - slider["79"].AbsolutePosition.X) / (slider["79"].AbsoluteSize.X), 0, 1)
+						local val = math.floor((options.Range.min + (options.Range.max - options.Range.min) * ps) / options.Increment + 0.5) * options.Increment
+						val = math.clamp(val, options.Range.min, options.Range.max)
+
+						slider["7d"].Text = tostring(val)
+						slider["79"].Size = UDim2.fromScale(ps, 1)
+					else
+						value = math.floor((value - options.Range.min) / options.Increment + 0.5) * options.Increment + options.Range.min
+						value = math.clamp(value, options.Range.min, options.Range.max)
+
+						slider["7d"].Text = tostring(value)
+						slider["79"].Size = UDim2.fromScale((value - options.Range.min) / (options.Range.max - options.Range.min), 1)
+					end
+					options.CallBack(slider:GetValue())
+				end
+
+				function slider:GetValue()
+					return tonumber(slider["7d"].Text)
+				end
+				
+		
+				-- main logic
+				do
+					NewConnection(slider["73"], "MouseEnter", function()
+						slider.Hover = true
+						TweenService:Create(slider["7d"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+						TweenService:Create(slider["7e"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+						TweenService:Create(slider["75"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+					end)
+
+					NewConnection(slider["73"], "MouseLeave", function()
+						slider.Hover = false
+
+						if not slider.MouseDown then
+							TweenService:Create(slider["7d"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(slider["7e"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(slider["75"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
+					end)
+
+					NewConnection(UserInputService, "InputBegan", function(input, gpe)
+						--if gpe then return end
+
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and slider.Hover then
+							
+							slider.MouseDown = true
+							local currentInputType = input.UserInputType
+							
+							TweenService:Create(slider["79"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}):Play()
+							TweenService:Create(slider["7b"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(230, 230, 230)}):Play()
+							
+							if not slider.Connection then
+								slider.Connection = RunService.RenderStepped:Connect(function()
+									slider:SetValue()
+								end)
+							end
+						end
+					end)
+
+					NewConnection(UserInputService, "InputEnded", function(input, gpe)
+						--if gpe then return end
+
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+							slider.MouseDown = false
+
+							if slider.Hover then
+								TweenService:Create(slider["79"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+								TweenService:Create(slider["7b"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+							else
+								TweenService:Create(slider["79"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+								TweenService:Create(slider["7b"], TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 100, 100)}):Play()
+								
+								TweenService:Create(slider["7d"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								TweenService:Create(slider["7e"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								
+								TweenService:Create(slider["75"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+							end
+							
+							if slider.Connection then slider.Connection:Disconnect() end
+							slider.Connection = nil
+						end
+					end)
+					
+				end
+			end
+			
+			return section
+		end
+		
 		return tab
 	end
 	
@@ -2064,8 +2561,25 @@ local Window = library:CreateWindow({
 	Discord = {
 		Invite = "NoInvite"
 	}
-}) HomeTab = Window:CreateHomeTab()
+}) 
+local HomeTab = Window:CreateHomeTab()
+----------------------------------------------------------------------
+
+local tab1 = Window:CreateTab({ Name = "Test Tab", Icon = "rbxassetid://10709782497" })
+
+local section = tab1:CreateSection({ Name = "Test Section" })
+
+local button = section:CreateButton({ 
+	Name = "Test Button", 
+	CallBack = function() 
+		print("Test Button") 
+	end
+})
+
+local slider = section:CreateSlider({})
 
 
-local tab1 =  Window:CreateTab({})
-local tab2 =  Window:CreateTab({})
+local section2 = tab1:CreateSection({ Name = "Test Section2" })
+local section3 = tab1:CreateSection({ Name = "Test Section3" })
+
+local tab2 = Window:CreateTab({Name = "Test Tab", Icon = "rbxassetid://10709782497"})
