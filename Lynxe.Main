@@ -323,65 +323,8 @@ function library:CreateWindow(options)
 		ConfigData = {},
 		Elements = {}
 	}	
-	
-	if options.ConfigSaving.Enabled then
-		library.UserData:GetSaveFolder(options.ConfigSaving.FolderName)
-		local Data = library.UserData:Load(options.ConfigSaving.FolderName, options.ConfigSaving.FileName)
-		
-		if Data then
-			tree.ConfigData = Data
-			
-			for flag, value in pairs(tree.ConfigData) do
-				if tree.Elements[flag] then
-					
-					local element = tree.Elements[flag]
-					
-					if element.set then
-						element:set(value)
-					elseif element.SetValue then
-						element:SetValue(value)
-					elseif element.activated then 
-						local index = table.find(options["Options"], value)
-						
-						if index then
-							options["CurrentOption"][1] = value
-							element["88"].Text = value
-						end
-					elseif element["c8"] then
-						element["c8"].Text = value
-						options["Keybind"] = value
-					end
-				end
-				
-				-- Load special settings
-				if tree.ConfigData["UItoggleBind"] then
-					options["UItoggleBind"] = tree.ConfigData["UItoggleBind"]
-					tree["3f"].Text = tree.ConfigData["UItoggleBind"]
-				end
-				
-				if tree.ConfigData["ClockMode"] ~= nil then
-					tree["ClockMode"] = tree.ConfigData["ClockMode"]
-					if tree["ClockMode"] then
-						library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)})
-						tree["37"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
-					else
-						library:tween(tree["37"], {Position = UDim2.new(0, 2, 0, 2)})
-						tree["37"].BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-					end
-				end
-			end
-			
-			if options["LynxeUIPrompts"] then
-				library:Notify({
-					Title = "Config saving",
-					Info = "Loaded config data",
-					Duration = 3,
-					Image = "rbxassetid://10723374641"
-				})
-			end
-		end
-	end
-	
+
+
 	-- Main Window
 	do
 		-- StarterGui.UI
@@ -1576,6 +1519,66 @@ function library:CreateWindow(options)
 				Duration = 3,
 				Image = "rbxassetid://10709790644"
 			})
+		end
+		
+		task.wait(0.5)
+		
+		if options.ConfigSaving.Enabled then
+			library.UserData:GetSaveFolder(options.ConfigSaving.FolderName)
+			local Data = library.UserData:Load(options.ConfigSaving.FolderName, options.ConfigSaving.FileName)
+
+			if Data then
+				tree.ConfigData = Data
+
+				for flag, value in pairs(tree.ConfigData) do
+					if tree.Elements[flag] then
+
+						local element = tree.Elements[flag]
+
+						if element.set then
+							element:set(value)
+						elseif element.SetValue then
+							element:SetValue(value)
+						elseif element.activated then 
+							local index = table.find(options["Options"], value)
+
+							if index then
+								options["CurrentOption"][1] = value
+								element["88"].Text = value
+							end
+						elseif element["c8"] then
+							element["c8"].Text = value
+							options["Keybind"] = value
+						end
+					end
+
+					-- Load special settings
+					if tree.ConfigData["UItoggleBind"] then
+						options["UItoggleBind"] = tree.ConfigData["UItoggleBind"]
+						tree["3f"].Text = tree.ConfigData["UItoggleBind"]
+					end
+
+					if tree.ConfigData["ClockMode"] ~= nil then
+						tree["ClockMode"] = tree.ConfigData["ClockMode"]
+						if tree["ClockMode"] then
+							library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)}) -- error: TweenService failed because instance is null. AI how can i fix this
+							tree["37"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+						else
+							library:tween(tree["37"], {Position = UDim2.new(0, 2, 0, 2)})
+							tree["37"].BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+						end
+					end
+				end
+
+				if options["LynxeUIPrompts"] then
+					library:Notify({
+						Title = "Config saving",
+						Info = "Loaded config data",
+						Duration = 2.5,
+						Image = "rbxassetid://10723374641"
+					})
+				end
+			end
 		end
 	end
 	loadUI()
