@@ -314,6 +314,8 @@ function library:CreateWindow(options)
 		}
 	}, options or {})
 	
+	library.MainOptions = options
+	
 	local tree = {
 		CurrentTab = nil, 
 		UIactive = false,
@@ -2565,7 +2567,7 @@ function library:CreateWindow(options)
 					
 					if options["Flag"] then
 						tree.ConfigData[options["Flag"]] = toggle.Value
-						library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+						library.UserData:Save(library.MainOptions.ConfigSaving.FolderName, library.MainOptions.ConfigSaving.FileName, tree.ConfigData)
 					end
 				end
 				
@@ -2617,7 +2619,7 @@ function library:CreateWindow(options)
 					end)
 				end
 				
-				library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+				library.UserData:Save(library.MainOptions.ConfigSaving.FolderName, library.MainOptions.ConfigSaving.FileName, tree.ConfigData)
 				return toggle
 			end
 			
@@ -2787,7 +2789,7 @@ function library:CreateWindow(options)
 					
 					if options["Flag"] then
 						tree.ConfigData[options["Flag"]] = slider:GetValue()
-						library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+						library.UserData:Save(library.MainOptions.ConfigSaving.FolderName, library.MainOptions.ConfigSaving.FileName, tree.ConfigData)
 					end
 				end
 
@@ -2974,7 +2976,7 @@ function library:CreateWindow(options)
 							
 							if options["Flag"] then
 								tree.ConfigData[options["Flag"]] = options["Keybind"]
-								library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+								library.UserData:Save(library.MainOptions.ConfigSaving.FolderName, library.MainOptions.ConfigSaving.FileName, tree.ConfigData)
 							end
 						end
 					end
@@ -3305,10 +3307,10 @@ function library:CreateWindow(options)
 							
 							options.Callback(options["CurrentOption"][1])
 						
-						if options["Flag"] then
-							tree.ConfigData[options["Flag"]] = options["CurrentOption"][1]
-							library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
-						end
+							if options["Flag"] then
+								tree.ConfigData[options["Flag"]] = options["CurrentOption"][1]
+								library.UserData:Save(library.MainOptions.ConfigSaving.FolderName, library.MainOptions.ConfigSaving.FileName, tree.ConfigData)
+							end
 						end
 					end)
 
