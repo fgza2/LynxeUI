@@ -1561,7 +1561,7 @@ function library:CreateWindow(options)
 					if tree.ConfigData["ClockMode"] ~= nil then
 						tree["ClockMode"] = tree.ConfigData["ClockMode"]
 						if tree["ClockMode"] then
-							library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)}) -- error: TweenService failed because instance is null. AI how can i fix this
+							library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)})
 							tree["37"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
 						else
 							library:tween(tree["37"], {Position = UDim2.new(0, 2, 0, 2)})
@@ -2454,7 +2454,7 @@ function library:CreateWindow(options)
 				options = library:validate({
 					Name = "Test Toggle",
 					CurrentValue = false,
-					Flag = "Toggle1",
+					Flag = options["Name"] or "Toggle1",
 					Callback = function(Value) end
 				}, options or {})
 
@@ -2633,7 +2633,7 @@ function library:CreateWindow(options)
 					CurrentValue = 10,
 					Range = {min = 0, max = 100},
 					Increment = 1,
-					Flag = "slider1",
+					Flag = options["Name"] or "slider1",
 					Callback = function(Value) end
 				}, options or {})
 
@@ -2885,7 +2885,7 @@ function library:CreateWindow(options)
 				library:validate({
 					Name = "Test Key-bind",
 					Keybind = "Q",
-					Flag = "Keybind1",
+					Flag = options["Name"] or "Keybind1",
 					Callback = function(Bind) end
 				}, options or {})
 				
@@ -3051,7 +3051,7 @@ function library:CreateWindow(options)
 					Options = {"Option 1", "Option 2"},
 					CurrentOption = {"Option 1"},
 					--MultipleOptions = false,
-					Flag = "Dropdown1",
+					Flag = options["Name"] or "Dropdown1",
 					Callback = function(Option)
 						
 					end
