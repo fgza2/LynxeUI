@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
 local RunService = game:GetService("RunService")
-local HttpsService = game:GetService("HttpService")
+local HttpService = game:GetService("HttpService")
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -29,14 +29,14 @@ Connections = {}
 
 function KeyBinding()
 	local key = nil
-	local connection = nil
+	local connectionKey = nil
 	
-	connection = UserInputService.InputBegan:Connect(function(input, gpe)
+	connectionKey = UserInputService.InputBegan:Connect(function(input, gpe)
 		if gpe then return end
 		
 		if input.UserInputType == Enum.UserInputType.Keyboard then
 			key = input.KeyCode
-			connection:Disconnect()
+			connectionKey:Disconnect()
 		end
 	end)
 	
@@ -60,6 +60,43 @@ end
 
 local library = {}
 library.IsMobile = UserInputService.TouchEnabled
+library.UserData = {}
+
+function library.UserData:GetSaveFolder(folderName)
+	local success, result = pcall(function()
+		if isfolder and writefile and readfile then
+			if not isfolder(folderName) then
+				makefolder(folderName)
+			end
+			return true
+		end
+		return false
+	end)
+	return success and result
+end
+
+function library.UserData:Save(folderName, fileName, data)
+	pcall(function()
+		if writefile then
+			writefile(folderName .. "/" .. fileName .. ".json", HttpService:JSONEncode(data))
+		end
+	end)
+end
+
+function library.UserData:Load(folderName, fileName)
+	local success, result = pcall(function()
+		if readfile and isfile then
+			
+			local path = folderName .. "/" .. fileName .. ".json"
+			
+			if isfile(path) then
+				return HttpService:JSONDecode(readfile(path))
+			end
+		end
+		return nil
+	end)
+	return success and result or nil
+end
 
 library["Lynxe.Main"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
 library["Lynxe.Main"]["Name"] = "Lynxe.Main";
@@ -259,12 +296,18 @@ function library:CreateWindow(options)
 		Name = "Lynxe UI",
 		Icon = "rbxassetid://10709782497",
 		
-		UIHotkey = Enum.KeyCode.P,
+		UItoggleBind = "P",
+		
+		LynxeUIPrompts = true,
 		
 		LoadingTitle = "Title",
 		LoadingDescription = "Title Tip",
 		
-		LynxeUIPrompts = true,
+		ConfigSaving = {
+			Enabled = true,
+			FolderName = "LynxeConfigs",
+			FileName = "lynxehub"
+		},
 		
 		Discord = {
 			Invite = "NoInvite"
@@ -274,9 +317,68 @@ function library:CreateWindow(options)
 	local tree = {
 		CurrentTab = nil, 
 		UIactive = false,
-		ClockMode = false
+		ClockMode = false,
+		ConfigData = {},
+		Elements = {}
 	}	
 	
+	if options.ConfigSaving.Enabled then
+		library.UserData:GetSaveFolder(options.ConfigSaving.FolderName)
+		local Data = library.UserData:Load(options.ConfigSaving.FolderName, options.ConfigSaving.FileName)
+		
+		if Data then
+			tree.ConfigData = Data
+			
+			for flag, value in pairs(tree.ConfigData) do
+				if tree.Elements[flag] then
+					
+					local element = tree.Elements[flag]
+					
+					if element.set then
+						element:set(value)
+					elseif element.SetValue then
+						element:SetValue(value)
+					elseif element.activated then 
+						local index = table.find(options["Options"], value)
+						
+						if index then
+							options["CurrentOption"][1] = value
+							element["88"].Text = value
+						end
+					elseif element["c8"] then
+						element["c8"].Text = value
+						options["Keybind"] = value
+					end
+				end
+				
+				-- Load special settings
+				if tree.ConfigData["UItoggleBind"] then
+					options["UItoggleBind"] = tree.ConfigData["UItoggleBind"]
+					tree["3f"].Text = tree.ConfigData["UItoggleBind"]
+				end
+				
+				if tree.ConfigData["ClockMode"] ~= nil then
+					tree["ClockMode"] = tree.ConfigData["ClockMode"]
+					if tree["ClockMode"] then
+						library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)})
+						tree["37"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+					else
+						library:tween(tree["37"], {Position = UDim2.new(0, 2, 0, 2)})
+						tree["37"].BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+					end
+				end
+			end
+			
+			if options["LynxeUIPrompts"] then
+				library:Notify({
+					Title = "Config saving",
+					Info = "Loaded config data",
+					Duration = 3,
+					Image = "rbxassetid://10723374641"
+				})
+			end
+		end
+	end
 	
 	-- Main Window
 	do
@@ -421,32 +523,51 @@ function library:CreateWindow(options)
 
 	-- Draggable Window logic
 	do
-		local UIFrame = tree["2"]
+		local frame = tree["2"]
+		local dragStartPos, frameStartPos = nil, nil
+		tree.isDragging = false
+		tree.canDrag = true 
 		
-		local isDragging = false
-		local dragStartPos = Vector2.new(0, 0)
-		local frameStartPos = UDim2.new(0, 0, 0, 0)
+		function tree:SetDraggable(enabled)
+			tree.canDrag = enabled
+			if not enabled then
+				tree.isDragging = false
+			end
+		end
 		
-		UIFrame.InputBegan:Connect(function(input)
+		function tree:IsDraggable()
+			return tree.canDrag
+		end
+		
+		NewConnection(frame, "InputBegan", function(input)
+			if not tree.canDrag then return end
+			
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				isDragging = true
+				tree.isDragging = true
 				dragStartPos = input.Position
-				frameStartPos = UIFrame.Position
+				frameStartPos = frame.Position
 			end
 		end)
 		
-		UserInputService.InputChanged:Connect(function(input)
-			if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		NewConnection(UserInputService, "InputChanged", function(input)
+			if not tree.canDrag or not tree.isDragging then return end
+			
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 				local delta = input.Position - dragStartPos
-				local targetPos = UDim2.new(frameStartPos.X.Scale, frameStartPos.X.Offset + delta.X, frameStartPos.Y.Scale, frameStartPos.Y.Offset + delta.Y)
+				local targetPos = UDim2.new(
+					frameStartPos.X.Scale, 
+					frameStartPos.X.Offset + delta.X, 
+					frameStartPos.Y.Scale, 
+					frameStartPos.Y.Offset + delta.Y
+				)
 				
-				TweenService:Create(UIFrame, TweenInfo.new(0.16), {Position = targetPos}):Play()
+				TweenService:Create(frame, TweenInfo.new(0.16), {Position = targetPos}):Play()
 			end
 		end)
 		
-		UserInputService.InputEnded:Connect(function(input)
+		NewConnection(UserInputService, "InputEnded", function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				isDragging = false
+				tree.isDragging = false
 			end
 		end)
 	end
@@ -537,7 +658,7 @@ function library:CreateWindow(options)
 		tree["c"]["AnchorPoint"] = Vector2.new(1, 0);
 		tree["c"]["Size"] = UDim2.new(0, 60, 0, 20);
 		tree["c"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-		tree["c"]["Text"] = [[Ver. 1.0.0]];
+		tree["c"]["Text"] = [[Ver. 2.0.0]];
 		tree["c"]["Name"] = [[Version]];
 		tree["c"]["Position"] = UDim2.new(1, -90, 0, -2);
 
@@ -683,7 +804,6 @@ function library:CreateWindow(options)
 
 				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UICorner
 				tree["29"] = Instance.new("UICorner", tree["28"]);
-
 
 
 				-- StarterGui.UI.Window.ClosePrompt.Prompt.OptionTwo.UIStroke
@@ -1192,6 +1312,9 @@ function library:CreateWindow(options)
 					if KeyBind then
 						HotkeyButton["Key"].Text = KeyBind.Name
 						options["UIHotkey"] = KeyBind
+						
+						tree.ConfigData["UItoggleBind"] = KeyBind.Name
+						library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
 					end
 				end)
 			end
@@ -1210,15 +1333,19 @@ function library:CreateWindow(options)
 				library:tween(ToggleButton["Indicate"]["Frame"], {Position = UDim2.new(0, 26, 0, 2)})
 				ToggleButton["Indicate"]["Frame"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
 			end
+			
+			tree.ConfigData["ClockMode"] = tree["ClockMode"]
+			library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
 		end)
 		
 		if not library.IsMobile then
 			NewConnection(UserInputService, "InputBegan", function(input, gpe)
 				if gpe then return end
 
-				local keybind = options["UIHotkey"]
+				local keybind = options["UItoggleBind"]
+				local EnumBind = Enum.KeyCode[keybind]
 
-				if input.KeyCode == keybind then
+				if input.KeyCode == EnumBind then
 					if tree.UIactive then
 						library:tween(tree["2"], {BackgroundTransparency = 1}, function()
 							tree.UIactive = false
@@ -1556,11 +1683,11 @@ function library:CreateWindow(options)
 			tab["48"] = Instance.new("Frame", tab["47"]);
 			tab["48"]["BorderSizePixel"] = 0;
 			tab["48"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
-			tab["48"]["Size"] = UDim2.new(1, -30, 1, -170);
-			tab["48"]["Position"] = UDim2.new(0, 15, 0, 15);
+			tab["48"]["Size"] = UDim2.new(1, -15, 1, -170);
+			tab["48"]["Position"] = UDim2.new(0, 7, 0, 15);
 			tab["48"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["48"]["Name"] = [[ProfileStats]];
-			tab["48"]["BackgroundTransparency"] = 0.7;
+			tab["48"]["BackgroundTransparency"] = 0.85;
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.UICorner
@@ -1570,8 +1697,8 @@ function library:CreateWindow(options)
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.UIStroke
 			tab["4a"] = Instance.new("UIStroke", tab["48"]);
-			tab["4a"]["Thickness"] = 0.5;
-			tab["4a"]["Color"] = Color3.fromRGB(101, 101, 101);
+			tab["4a"]["Thickness"] = 0.7;
+			tab["4a"]["Color"] = Color3.fromRGB(100, 100, 100);
 
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP
@@ -1593,7 +1720,7 @@ function library:CreateWindow(options)
 
 			-- StarterGui.UI.Window.MainContainer.HomeTab.ProfileStats.PFP.UIStroke
 			tab["4d"] = Instance.new("UIStroke", tab["4b"]);
-			tab["4d"]["Thickness"] = 0.5;
+			tab["4d"]["Thickness"] = 0.7;
 			tab["4d"]["Color"] = Color3.fromRGB(101, 101, 101);
 
 
@@ -1641,7 +1768,7 @@ function library:CreateWindow(options)
 			tab["50"] = Instance.new("Frame", tab["48"]);
 			tab["50"]["BorderSizePixel"] = 0;
 			tab["50"]["BackgroundColor3"] = Color3.fromRGB(101, 101, 101);
-			tab["50"]["Size"] = UDim2.new(0.458, 0, 0.009, 0);
+			tab["50"]["Size"] = UDim2.new(0.458, 0, 0.008, 0);
 			tab["50"]["Position"] = UDim2.new(0.079, 0, 0.53, 0);
 			tab["50"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 
@@ -1657,8 +1784,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			--local exec_name, exec_version = identifyexecutor()
-			--tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
+			local exec_name, exec_version = identifyexecutor()
+			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
@@ -1742,7 +1869,7 @@ function library:CreateWindow(options)
 					tab.Active = true
 					library:tween(tab["19"], {TextTransparency = 0.15})
 					library:tween(tab["1a"], {ImageTransparency = 0.15})
-					library:tween(tab["1c"], {BackgroundTransparency = 0})
+					library:tween(tab["1c"], {BackgroundTransparency = 0.35})
 					tab["47"].Visible = true
 
 					tree.CurrentTab = tab
@@ -1999,7 +2126,7 @@ function library:CreateWindow(options)
 					tab.Active = true
 					library:tween(tab["19"], {TextTransparency = 0.15})
 					library:tween(tab["1a"], {ImageTransparency = 0.15})
-					library:tween(tab["1c"], {BackgroundTransparency = 0})
+					library:tween(tab["1c"], {BackgroundTransparency = 0.35})
 					tab["53"].Visible = true
 
 					tree.CurrentTab = tab
@@ -2047,6 +2174,7 @@ function library:CreateWindow(options)
 			end
 		end
 		
+		
 		function tab:CreateSection(options)
 			options = library:validate({ 
 				Name = "Test Section" 
@@ -2061,11 +2189,11 @@ function library:CreateWindow(options)
 				section["5a"]["BorderSizePixel"] = 0;
 				section["5a"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36);
 				section["5a"]["AutomaticSize"] = Enum.AutomaticSize.Y;
-				section["5a"]["Size"] = UDim2.new(1, -30, 0, 170);
+				section["5a"]["Size"] = UDim2.new(1, -15, 0, 170);
 				section["5a"]["Position"] = UDim2.new(0, 15, 0, 15);
 				section["5a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 				section["5a"]["Name"] = options["Name"];
-				section["5a"]["BackgroundTransparency"] = 0.7;
+				section["5a"]["BackgroundTransparency"] = 1;
 
 
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UICorner
@@ -2076,7 +2204,7 @@ function library:CreateWindow(options)
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIStroke
 				section["5c"] = Instance.new("UIStroke", section["5a"]);
 				section["5c"]["Thickness"] = 0.5;
-				section["5c"]["Color"] = Color3.fromRGB(51, 51, 51);
+				section["5c"]["Color"] = Color3.fromRGB(70, 70, 70);
 
 
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Title
@@ -2101,19 +2229,21 @@ function library:CreateWindow(options)
 
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIListLayout
 				section["5e"] = Instance.new("UIListLayout", section["5a"]);
-				section["5e"]["Padding"] = UDim.new(0, 10);
+				section["5e"]["Padding"] = UDim.new(0, 13);
 				section["5e"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
 
 
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.UIPadding
 				section["5f"] = Instance.new("UIPadding", section["5a"]);
-				section["5f"]["PaddingTop"] = UDim.new(0, 5);
-				section["5f"]["PaddingRight"] = UDim.new(0, 5);
-				section["5f"]["PaddingLeft"] = UDim.new(0, 5);
+				section["5f"]["PaddingTop"] = UDim.new(0, 7);
+				section["5f"]["PaddingRight"] = UDim.new(0, 10);
+				section["5f"]["PaddingLeft"] = UDim.new(0, 10);
 				section["5f"]["PaddingBottom"] = UDim.new(0, 10);
 			end
 			
 			-- offset scaling
+			local sizeChangeConnections = {}
+			
 			local function updateCanvasSize()
 				
 				local page = tab["53"]
@@ -2136,8 +2266,25 @@ function library:CreateWindow(options)
 				page.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
 			end
 			
+			local function trackChildSizeChanges(child)
+				if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
+					if sizeChangeConnections[child] then
+						sizeChangeConnections[child]:Disconnect()
+					end
+
+					sizeChangeConnections[child] = child:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+						task.wait(0.1)
+						updateCanvasSize()
+					end)
+				end
+			end
+			
 			task.wait(0.1)
 			updateCanvasSize()
+			
+			for _, child in pairs(tab["53"]:GetChildren()) do
+				trackChildSizeChanges(child)
+			end
 			
 			NewConnection(section["5a"], "ChildAdded", function()
 				task.wait(0.1)
@@ -2153,18 +2300,25 @@ function library:CreateWindow(options)
 				if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
 					task.wait(0.1)
 					updateCanvasSize()
+					trackChildSizeChanges(child)
 				end
 			end)
 			
-			NewConnection(tab["53"], "ChildRemoved", function()
+			NewConnection(tab["53"], "ChildRemoved", function(child)
 				task.wait(0.1)
 				updateCanvasSize()
+				
+				if sizeChangeConnections[child] then
+					sizeChangeConnections[child]:Disconnect()
+					sizeChangeConnections[child] = nil
+				end
 			end)
+			
 			
 			function section:CreateButton(options)
 				options = library:validate({
 					Name = "Test Button",
-					CallBack = function() end
+					Callback = function() end
 				}, options or {})
 				
 				local button = {
@@ -2265,7 +2419,7 @@ function library:CreateWindow(options)
 						
 						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and button.Hover then
 							button.MouseDown = true
-							if options.CallBack then options.CallBack() end
+							options.Callback()
 							TweenService:Create(button["60"], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
 						end
 					end)
@@ -2287,16 +2441,20 @@ function library:CreateWindow(options)
 						end
 					end)
 				end
+				return button
 			end
 			
 			
 			function section:CreateToggle(options)
 				options = library:validate({
-					Name = "Test Button",
-					CallBack = function() end
+					Name = "Test Toggle",
+					CurrentValue = false,
+					Flag = "Toggle1",
+					Callback = function(Value) end
 				}, options or {})
 
-				local button = {
+				local toggle = {
+					Value = false,
 					Hover = false,
 					MouseDown = false,
 				}
@@ -2304,20 +2462,174 @@ function library:CreateWindow(options)
 				
 				-- Create Toggle
 				do
-					
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton
+					toggle["68"] = Instance.new("Frame", section["5a"]);
+					toggle["68"]["BorderSizePixel"] = 0;
+					toggle["68"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					toggle["68"]["Size"] = UDim2.new(1, -1, 0, 30);
+					toggle["68"]["Position"] = UDim2.new(0, 50, 0, 50);
+					toggle["68"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					toggle["68"]["Name"] = [[ToggleButton]];
+					toggle["68"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.UICorner
+					toggle["69"] = Instance.new("UICorner", toggle["68"]);
+					toggle["69"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Indicate
+					toggle["6a"] = Instance.new("Frame", toggle["68"]);
+					toggle["6a"]["BorderSizePixel"] = 0;
+					toggle["6a"]["BackgroundColor3"] = Color3.fromRGB(51, 51, 51);
+					toggle["6a"]["AnchorPoint"] = Vector2.new(1, 0);
+					toggle["6a"]["Size"] = UDim2.new(0, 37, 0, 17);
+					toggle["6a"]["Position"] = UDim2.new(1, -7, 0, 7);
+					toggle["6a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					toggle["6a"]["Name"] = [[Indicate]];
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Indicate.UICorner
+					toggle["6b"] = Instance.new("UICorner", toggle["6a"]);
+					toggle["6b"]["CornerRadius"] = UDim.new(0, 20);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Indicate.UIStroke
+					toggle["6c"] = Instance.new("UIStroke", toggle["6a"]);
+					toggle["6c"]["Color"] = Color3.fromRGB(101, 101, 101);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Indicate.Frame
+					toggle["6d"] = Instance.new("Frame", toggle["6a"]);
+					toggle["6d"]["BorderSizePixel"] = 0;
+					toggle["6d"]["BackgroundColor3"] = Color3.fromRGB(100, 100, 100);
+					toggle["6d"]["Size"] = UDim2.new(0, 13, 0, 13);
+					toggle["6d"]["Position"] = UDim2.new(0, 2, 0, 2);
+					toggle["6d"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Indicate.Frame.UICorner
+					toggle["6e"] = Instance.new("UICorner", toggle["6d"]);
+					toggle["6e"]["CornerRadius"] = UDim.new(1, 0);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.UIStroke
+					toggle["70"] = Instance.new("UIStroke", toggle["68"]);
+					toggle["70"]["Thickness"] = 0.7;
+					toggle["70"]["Color"] = Color3.fromRGB(100, 100, 100);
+					toggle["70"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Name
+					toggle["71"] = Instance.new("TextLabel", toggle["68"]);
+					toggle["71"]["BorderSizePixel"] = 0;
+					toggle["71"]["TextSize"] = 15;
+					toggle["71"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					toggle["71"]["TextTransparency"] = 0.5;
+					toggle["71"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					toggle["71"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					toggle["71"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					toggle["71"]["BackgroundTransparency"] = 1;
+					toggle["71"]["Size"] = UDim2.new(1, 0, 0, 15);
+					toggle["71"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					toggle["71"]["Text"] = options["Name"];
+					toggle["71"]["Name"] = [[Name]];
+					toggle["71"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.ToggleButton.Name.UIPadding
+					toggle["72"] = Instance.new("UIPadding", toggle["71"]);
+					toggle["72"]["PaddingTop"] = UDim.new(0, 6);
+					toggle["72"]["PaddingRight"] = UDim.new(0, 6);
+					toggle["72"]["PaddingLeft"] = UDim.new(0, 6);
+					toggle["72"]["PaddingBottom"] = UDim.new(0, 6);
 				end
 				
+				-- methods, functions
+				function toggle:set(val)
+					if val == nil then
+						toggle.Value = not toggle.Value
+					else
+						toggle.Value = val
+					end
+					
+					if toggle.Value then
+						TweenService:Create(toggle["6d"], TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(200, 200, 200), Position = UDim2.fromOffset(20, 2)}):Play()
+						TweenService:Create(toggle["6c"], TweenInfo.new(0.25), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+					else
+						TweenService:Create(toggle["6d"], TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(100, 100, 100), Position = UDim2.fromOffset(2, 2)}):Play()
+						TweenService:Create(toggle["6c"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+					end
+					
+					options.Callback(toggle.Value)
+					
+					if options["Flag"] then
+						tree.ConfigData[options["Flag"]] = toggle.Value
+						library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+					end
+				end
 				
+				toggle:set(options["CurrentValue"])
+				
+				if options["Flag"] then
+					tree.Elements[options["Flag"]] = toggle
+					tree.ConfigData[options["Flag"]] = options["CurrentValue"]
+				end
+				
+				-- logic
+				do
+					NewConnection(toggle["68"], "MouseEnter", function()
+						toggle.Hover = true
+						TweenService:Create(toggle["71"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+						TweenService:Create(toggle["70"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+					end)
+
+					NewConnection(toggle["68"], "MouseLeave", function()
+						toggle.Hover = false
+
+						if not toggle.MouseDown then
+							TweenService:Create(toggle["71"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(toggle["70"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
+					end)
+
+					NewConnection(UserInputService, "InputBegan", function(input)
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and toggle.Hover then
+							toggle.MouseDown = true
+							toggle:set()
+							TweenService:Create(toggle["68"], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
+						end
+					end)
+
+					NewConnection(UserInputService, "InputEnded", function(input, gpe)
+
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+							toggle.MouseDown = false
+
+							if toggle.Hover then
+								TweenService:Create(toggle["68"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							else
+								TweenService:Create(toggle["68"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+								TweenService:Create(toggle["71"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								TweenService:Create(toggle["70"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+							end
+						end
+					end)
+				end
+				
+				library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+				return toggle
 			end
+			
 			
 			function section:CreateSlider(options)
 				options = library:validate({
 					Name = "Test Slider",
-					Value = 1,
+					CurrentValue = 10,
 					Range = {min = 0, max = 100},
 					Increment = 1,
 					Flag = "slider1",
-					CallBack = function(Value) print(Value) end
+					Callback = function(Value) end
 				}, options or {})
 
 				local slider = {
@@ -2452,28 +2764,52 @@ function library:CreateWindow(options)
 				-- methods, functions
 				function slider:SetValue(value)
 					if value == nil then
-						local ps = math.clamp((mouse.X - slider["79"].AbsolutePosition.X) / (slider["79"].AbsoluteSize.X), 0, 1)
+						local ps = math.clamp((mouse.X - slider["76"].AbsolutePosition.X) / slider["76"].AbsoluteSize.X, 0, 1)
+						
 						local val = math.floor((options.Range.min + (options.Range.max - options.Range.min) * ps) / options.Increment + 0.5) * options.Increment
 						val = math.clamp(val, options.Range.min, options.Range.max)
 
 						slider["7d"].Text = tostring(val)
-						slider["79"].Size = UDim2.fromScale(ps, 1)
-					else
+						TweenService:Create(slider["79"], TweenInfo.new(0.15), {Size = UDim2.new(ps, 0, 1, 0)}):Play()
+						
+					elseif value ~= nil then
 						value = math.floor((value - options.Range.min) / options.Increment + 0.5) * options.Increment + options.Range.min
 						value = math.clamp(value, options.Range.min, options.Range.max)
 
 						slider["7d"].Text = tostring(value)
-						slider["79"].Size = UDim2.fromScale((value - options.Range.min) / (options.Range.max - options.Range.min), 1)
+						
+						local Size = UDim2.fromScale((value - options.Range.min) / (options.Range.max - options.Range.min), 1)
+						TweenService:Create(slider["79"], TweenInfo.new(0.25), {Size = Size}):Play()
 					end
-					options.CallBack(slider:GetValue())
+					
+					options["CurrentValue"] = tonumber(slider["7d"].Text)
+					options.Callback(slider:GetValue())
+					
+					if options["Flag"] then
+						tree.ConfigData[options["Flag"]] = slider:GetValue()
+						library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+					end
 				end
 
 				function slider:GetValue()
 					return tonumber(slider["7d"].Text)
 				end
 				
-		
-				-- main logic
+				slider:SetValue(options["CurrentValue"])
+				
+				if options["Flag"] then
+					tree.Elements[options["Flag"]] = slider
+					tree.ConfigData[options["Flag"]] = options["CurrentValue"]
+				end
+				
+				local stc = nil
+				
+				local stc = slider["7d"]:GetPropertyChangedSignal("Text"):Connect(function()
+					slider:SetValue(tonumber(slider["7d"].Text))
+				end)
+				
+				table.insert(Connections, stc)
+					
 				do
 					NewConnection(slider["73"], "MouseEnter", function()
 						slider.Hover = true
@@ -2493,7 +2829,6 @@ function library:CreateWindow(options)
 					end)
 
 					NewConnection(UserInputService, "InputBegan", function(input, gpe)
-						--if gpe then return end
 
 						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and slider.Hover then
 							
@@ -2506,13 +2841,13 @@ function library:CreateWindow(options)
 							if not slider.Connection then
 								slider.Connection = RunService.RenderStepped:Connect(function()
 									slider:SetValue()
+									tree:SetDraggable(false)
 								end)
 							end
 						end
 					end)
 
 					NewConnection(UserInputService, "InputEnded", function(input, gpe)
-						--if gpe then return end
 
 						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 							slider.MouseDown = false
@@ -2532,31 +2867,546 @@ function library:CreateWindow(options)
 							
 							if slider.Connection then slider.Connection:Disconnect() end
 							slider.Connection = nil
+							tree:SetDraggable(true)
 						end
 					end)
 					
 				end
+				return slider
 			end
 			
+			
+			function section:CreateKeyBind(options)
+				library:validate({
+					Name = "Test Key-bind",
+					Keybind = "Q",
+					Flag = "Keybind1",
+					Callback = function(Bind) end
+				}, options or {})
+				
+				local keybindB = {
+					Hover = false,
+					MouseDown = false,
+				}
+				
+				-- Create Keybind Button
+				do
+					if library.IsMobile then return end
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton
+					keybindB["c2"] = Instance.new("Frame", section["5a"]);
+					keybindB["c2"]["BorderSizePixel"] = 0;
+					keybindB["c2"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					keybindB["c2"]["Size"] = UDim2.new(1, -1, 0, 30);
+					keybindB["c2"]["Position"] = UDim2.new(0, 50, 0, 50);
+					keybindB["c2"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					keybindB["c2"]["Name"] = [[HotkeyButton]];
+					keybindB["c2"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.UICorner
+					keybindB["c3"] = Instance.new("UICorner", keybindB["c2"]);
+					keybindB["c3"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.UIStroke
+					keybindB["c5"] = Instance.new("UIStroke", keybindB["c2"]);
+					keybindB["c5"]["Thickness"] = 0.7;
+					keybindB["c5"]["Color"] = Color3.fromRGB(101, 101, 101);
+					keybindB["c5"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.Name
+					keybindB["c6"] = Instance.new("TextLabel", keybindB["c2"]);
+					keybindB["c6"]["BorderSizePixel"] = 0;
+					keybindB["c6"]["TextSize"] = 15;
+					keybindB["c6"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					keybindB["c6"]["TextTransparency"] = 0.5;
+					keybindB["c6"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					keybindB["c6"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					keybindB["c6"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					keybindB["c6"]["BackgroundTransparency"] = 1;
+					keybindB["c6"]["Size"] = UDim2.new(1, 0, 0, 15);
+					keybindB["c6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					keybindB["c6"]["Text"] = options["Name"];
+					keybindB["c6"]["Name"] = [[Name]];
+					keybindB["c6"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.Name.UIPadding
+					keybindB["c7"] = Instance.new("UIPadding", keybindB["c6"]);
+					keybindB["c7"]["PaddingTop"] = UDim.new(0, 6);
+					keybindB["c7"]["PaddingRight"] = UDim.new(0, 6);
+					keybindB["c7"]["PaddingLeft"] = UDim.new(0, 6);
+					keybindB["c7"]["PaddingBottom"] = UDim.new(0, 6);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.Indicate
+					keybindB["c8"] = Instance.new("TextLabel", keybindB["c2"]);
+					keybindB["c8"]["BorderSizePixel"] = 0;
+					keybindB["c8"]["TextTransparency"] = 0.5;
+					keybindB["c8"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					keybindB["c8"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					keybindB["c8"]["AnchorPoint"] = Vector2.new(1, 0);
+					keybindB["c8"]["Size"] = UDim2.new(0, 20, 0, 20);
+					keybindB["c8"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					keybindB["c8"]["Text"] = options["Keybind"];
+					keybindB["c8"]["Name"] = [[Indicate]];
+					keybindB["c8"]["Position"] = UDim2.new(1, -15, 0, 6);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.HotkeyButton.Indicate.UICorner
+					keybindB["c9"] = Instance.new("UICorner", keybindB["c8"]);
+					keybindB["c9"]["CornerRadius"] = UDim.new(0, 5);
+				end
+				
+				
+				-- methods, functions
+				function keybindB:set()
+					if not library.IsMobile then
+						if options["Keybind"] ~= nil then options["Keybind"] = nil end
+
+						keybindB["c8"].Text = "..."
+						local Binding = KeyBinding()
+							
+						if Binding then
+							keybindB["c8"].Text = Binding.Name
+							options["Keybind"] = Binding.Name
+							
+							if options["Flag"] then
+								tree.ConfigData[options["Flag"]] = options["Keybind"]
+								library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+							end
+						end
+					end
+				end
+				
+				-- logic
+				NewConnection(keybindB["c2"], "MouseEnter", function()
+					keybindB.Hover = true
+					TweenService:Create(keybindB["c6"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+					TweenService:Create(keybindB["c5"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+				end)
+
+				NewConnection(keybindB["c2"], "MouseLeave", function()
+					keybindB.Hover = false
+
+					if not keybindB.MouseDown then
+						TweenService:Create(keybindB["c6"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+						TweenService:Create(keybindB["c5"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+					end
+				end)
+
+				NewConnection(UserInputService, "InputBegan", function(input)
+					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and keybindB.Hover then
+						keybindB.MouseDown = true
+						keybindB:set()
+						TweenService:Create(keybindB["c2"], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
+					end
+				end)
+
+				NewConnection(UserInputService, "InputEnded", function(input)
+					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+						keybindB.MouseDown = false
+
+						if keybindB.Hover then
+							TweenService:Create(keybindB["c2"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+						else
+							TweenService:Create(keybindB["c2"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							TweenService:Create(keybindB["c6"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(keybindB["c5"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
+					end
+				end)
+				
+				if not library.IsMobile then
+					NewConnection(UserInputService, "InputBegan", function(input, gpe)
+						if gpe then return end
+						if options["Keybind"] == nil then return end
+						
+						local Bind = options["Keybind"]
+						local BindEnum = Enum.KeyCode[Bind]
+						
+						if BindEnum and input.KeyCode == BindEnum then
+							options.Callback(Bind)
+						end
+					end)
+				end
+				
+				if options["Flag"] then
+					tree.Elements[options["Flag"]] = keybindB
+					tree.ConfigData[options["Flag"]] = options["Keybind"]
+				end
+				
+				return keybindB
+			end
+			
+			function section:CreateDropdown(options)
+				library:validate({
+					Name = "Test Dropdown",
+					Options = {"Option 1", "Option 2"},
+					CurrentOption = {"Option 1"},
+					--MultipleOptions = false,
+					Flag = "Dropdown1",
+					Callback = function(Option)
+						
+					end
+				}, options or {})
+				
+				local dropdown = {
+					Hover = false,
+					MouseDown = false
+				}
+				
+				-- Create Dropdown
+				do
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown
+					dropdown["80"] = Instance.new("Frame", section["5a"]);
+					dropdown["80"]["BorderSizePixel"] = 0;
+					dropdown["80"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					dropdown["80"]["Size"] = UDim2.new(1, -1, 0, 30);
+					dropdown["80"]["Position"] = UDim2.new(0, 50, 0, 50);
+					dropdown["80"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown["80"]["Name"] = [[Dropdown]];
+					dropdown["80"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.UICorner
+					dropdown["81"] = Instance.new("UICorner", dropdown["80"]);
+					dropdown["81"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.UIStroke
+					dropdown["83"] = Instance.new("UIStroke", dropdown["80"]);
+					dropdown["83"]["Thickness"] = 0.7;
+					dropdown["83"]["Color"] = Color3.fromRGB(100, 100, 100);
+					dropdown["83"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Name
+					dropdown["84"] = Instance.new("TextLabel", dropdown["80"]);
+					dropdown["84"]["BorderSizePixel"] = 0;
+					dropdown["84"]["TextSize"] = 15;
+					dropdown["84"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					dropdown["84"]["TextTransparency"] = 0.5;
+					dropdown["84"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					dropdown["84"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					dropdown["84"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					dropdown["84"]["BackgroundTransparency"] = 1;
+					dropdown["84"]["Size"] = UDim2.new(1, 0, 0, 15);
+					dropdown["84"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown["84"]["Text"] = options["Name"];
+					dropdown["84"]["Name"] = [[Name]];
+					dropdown["84"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Name.UIPadding
+					dropdown["85"] = Instance.new("UIPadding", dropdown["84"]);
+					dropdown["85"]["PaddingTop"] = UDim.new(0, 6);
+					dropdown["85"]["PaddingRight"] = UDim.new(0, 6);
+					dropdown["85"]["PaddingLeft"] = UDim.new(0, 6);
+					dropdown["85"]["PaddingBottom"] = UDim.new(0, 6);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Indicate
+					dropdown["86"] = Instance.new("ImageLabel", dropdown["80"]);
+					dropdown["86"]["BorderSizePixel"] = 0;
+					dropdown["86"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					dropdown["86"]["ImageColor3"] = Color3.fromRGB(170, 170, 170);
+					dropdown["86"]["AnchorPoint"] = Vector2.new(1, 0);
+					dropdown["86"]["Image"] = [[rbxassetid://78828700384368]];
+					dropdown["86"]["Size"] = UDim2.new(0, 15, 0, 15);
+					dropdown["86"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown["86"]["BackgroundTransparency"] = 1;
+					dropdown["86"]["Rotation"] = 0;
+					dropdown["86"]["Name"] = [[Indicate]];
+					dropdown["86"]["Position"] = UDim2.new(1, -15, 0, 8);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Indicate.UICorner
+					dropdown["87"] = Instance.new("UICorner", dropdown["86"]);
+					dropdown["87"]["CornerRadius"] = UDim.new(0, 5);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option
+					dropdown["88"] = Instance.new("TextLabel", dropdown["80"]);
+					dropdown["88"]["BorderSizePixel"] = 0;
+					dropdown["88"]["TextSize"] = 14;
+					dropdown["88"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					dropdown["88"]["TextTransparency"] = 0.5;
+					dropdown["88"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					dropdown["88"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					dropdown["88"]["TextColor3"] = Color3.fromRGB(251, 251, 251);
+					dropdown["88"]["BackgroundTransparency"] = 1;
+					dropdown["88"]["AnchorPoint"] = Vector2.new(1, 0);
+					dropdown["88"]["Size"] = UDim2.new(1, -180, 0, 15);
+					dropdown["88"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown["88"]["Text"] = options["CurrentOption"][1];
+					dropdown["88"]["Name"] = [[Option]];
+					dropdown["88"]["Position"] = UDim2.new(1, -40, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option.UIPadding
+					dropdown["89"] = Instance.new("UIPadding", dropdown["88"]);
+					dropdown["89"]["PaddingTop"] = UDim.new(0, 6);
+					dropdown["89"]["PaddingRight"] = UDim.new(0, 6);
+					dropdown["89"]["PaddingLeft"] = UDim.new(0, 6);
+					dropdown["89"]["PaddingBottom"] = UDim.new(0, 6);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder
+					dropdown["8a"] = Instance.new("Frame", dropdown["80"]);
+					dropdown["8a"]["Visible"] = false;
+					dropdown["8a"]["BorderSizePixel"] = 0;
+					dropdown["8a"]["ClipsDescendants"] = true;
+					dropdown["8a"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					dropdown["8a"]["Size"] = UDim2.new(1, -20, 1, -41);
+					dropdown["8a"]["Position"] = UDim2.new(0, 10, 0, 31);
+					dropdown["8a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown["8a"]["Name"] = [[OptionHolder]];
+					dropdown["8a"]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.UICorner
+					dropdown["8b"] = Instance.new("UICorner", dropdown["8a"]);
+					dropdown["8b"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.UIStroke
+					dropdown["8c"] = Instance.new("UIStroke", dropdown["8a"]);
+					dropdown["8c"]["Transparency"] = 1;
+					dropdown["8c"]["Thickness"] = 0.7;
+					dropdown["8c"]["Color"] = Color3.fromRGB(100, 100, 100);
+					dropdown["8c"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.UIListLayout
+					dropdown["8d"] = Instance.new("UIListLayout", dropdown["8a"]);
+					dropdown["8d"]["HorizontalAlignment"] = Enum.HorizontalAlignment.Center;
+					dropdown["8d"]["Padding"] = UDim.new(0, 10);
+					dropdown["8d"]["SortOrder"] = Enum.SortOrder.LayoutOrder;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.UIPadding
+					dropdown["94"] = Instance.new("UIPadding", dropdown["8a"]);
+					dropdown["94"]["PaddingTop"] = UDim.new(0, 10);
+					dropdown["94"]["PaddingRight"] = UDim.new(0, 10);
+					dropdown["94"]["PaddingLeft"] = UDim.new(0, 10);
+					dropdown["94"]["PaddingBottom"] = UDim.new(0, 10);
+				end
+				
+				
+				-- methods, functions
+				function dropdown:activated()
+					if not dropdown["8a"].Visible then
+						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, 170)}):Play()
+						TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
+						
+						dropdown["8a"].Visible = true
+						TweenService:Create(dropdown["8c"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200), Transparency = 0}):Play()
+					else
+						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, 30)}):Play()
+						TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(170, 170, 170), Rotation = 0}):Play()
+						
+						local t = TweenService:Create(dropdown["8c"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100), Transparency = 0.7})
+						t:Play()
+						
+						NewConnection(t, "Completed", function()
+							dropdown["8a"].Visible = false
+						end)
+					end
+				end
+				
+				function dropdown:CreateOption(name)
+					
+					local dropdownOption = {
+						Hover = false,
+						MouseDown = false,
+					}
+					
+					dropdown.OptionIndex = (dropdown.OptionIndex or 0) + 1
+					local index = dropdown.OptionIndex
+					local keyPrefix = "8e_" .. index
+					
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.Option1
+					dropdown[keyPrefix] = Instance.new("Frame", dropdown["8a"]);
+					dropdown[keyPrefix]["BorderSizePixel"] = 0;
+					dropdown[keyPrefix]["ClipsDescendants"] = true; 
+					dropdown[keyPrefix]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
+					dropdown[keyPrefix]["Size"] = UDim2.new(1, -1, 0, 30);
+					dropdown[keyPrefix]["Position"] = UDim2.new(0, 50, 0, 50);
+					dropdown[keyPrefix]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown[keyPrefix]["Name"] = name;
+					dropdown[keyPrefix]["BackgroundTransparency"] = 1;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.Option1.UICorner
+					dropdown[keyPrefix .. "_corner"] = Instance.new("UICorner", dropdown[keyPrefix]);
+					dropdown[keyPrefix .. "_corner"]["CornerRadius"] = UDim.new(0, 10);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.Option1.UIStroke
+					dropdown[keyPrefix .. "_stroke"] = Instance.new("UIStroke", dropdown[keyPrefix]);
+					dropdown[keyPrefix .. "_stroke"]["Thickness"] = 0.7;
+					dropdown[keyPrefix .. "_stroke"]["Color"] = Color3.fromRGB(101, 101, 101);
+					dropdown[keyPrefix .. "_stroke"]["ApplyStrokeMode"] = Enum.ApplyStrokeMode.Border;
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.Option1.Name
+					dropdown[keyPrefix .. "_name"] = Instance.new("TextLabel", dropdown[keyPrefix]);
+					dropdown[keyPrefix .. "_name"]["BorderSizePixel"] = 0;
+					dropdown[keyPrefix .. "_name"]["TextSize"] = 15;
+					dropdown[keyPrefix .. "_name"]["TextXAlignment"] = Enum.TextXAlignment.Left;
+					dropdown[keyPrefix .. "_name"]["TextTransparency"] = 0.5;
+					dropdown[keyPrefix .. "_name"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
+					dropdown[keyPrefix .. "_name"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
+					dropdown[keyPrefix .. "_name"]["TextColor3"] = Color3.fromRGB(255, 255, 255);
+					dropdown[keyPrefix .. "_name"]["BackgroundTransparency"] = 1;
+					dropdown[keyPrefix .. "_name"]["Size"] = UDim2.new(1, 0, 0, 15);
+					dropdown[keyPrefix .. "_name"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
+					dropdown[keyPrefix .. "_name"]["Text"] = name;
+					dropdown[keyPrefix .. "_name"]["Name"] = [[Name]];
+					dropdown[keyPrefix .. "_name"]["Position"] = UDim2.new(0, 0, 0, 7);
+
+
+					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.OptionHolder.Option1.Name.UIPadding
+					dropdown[keyPrefix .. "_padding"] = Instance.new("UIPadding", dropdown[keyPrefix .. "_name"]);
+					dropdown[keyPrefix .. "_padding"]["PaddingTop"] = UDim.new(0, 6);
+					dropdown[keyPrefix .. "_padding"]["PaddingRight"] = UDim.new(0, 6);
+					dropdown[keyPrefix .. "_padding"]["PaddingLeft"] = UDim.new(0, 6);
+					dropdown[keyPrefix .. "_padding"]["PaddingBottom"] = UDim.new(0, 6);
+					
+					
+					NewConnection(dropdown[keyPrefix], "MouseEnter", function()
+						dropdownOption.Hover = true
+						TweenService:Create(dropdown[keyPrefix .. "_name"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+						TweenService:Create(dropdown[keyPrefix .. "_stroke"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+					end)
+
+					NewConnection(dropdown[keyPrefix], "MouseLeave", function()
+						dropdownOption.Hover = false
+
+						if not dropdown.MouseDown then
+							TweenService:Create(dropdown[keyPrefix .. "_name"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(dropdown[keyPrefix .. "_stroke"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
+					end)
+
+					NewConnection(UserInputService, "InputBegan", function(input)
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dropdownOption.Hover then
+							dropdownOption.MouseDown = true
+							TweenService:Create(dropdown[keyPrefix], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
+							
+							local index = table.find(options["Options"], name)
+							
+							if index then
+								options["CurrentOption"][1] = options["Options"][index]
+								dropdown["88"].Text = options["CurrentOption"][1]
+							end
+							
+							options.Callback(options["CurrentOption"][1])
+						
+						if options["Flag"] then
+							tree.ConfigData[options["Flag"]] = options["CurrentOption"][1]
+							library.UserData:Save(options.ConfigSaving.FolderName, options.ConfigSaving.FileName, tree.ConfigData)
+						end
+						end
+					end)
+
+					NewConnection(UserInputService, "InputEnded", function(input)
+						if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+							dropdownOption.MouseDown = false	
+
+							if dropdownOption.Hover then
+								TweenService:Create(dropdown[keyPrefix], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							else
+								TweenService:Create(dropdown[keyPrefix], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+								TweenService:Create(dropdown[keyPrefix .. "_name"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								TweenService:Create(dropdown[keyPrefix .. "_stroke"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+							end
+						end
+					end)
+				end
+				
+				function dropdown:addOptions()
+					for i, String in pairs(options["Options"]) do
+						dropdown:CreateOption(String)
+					end
+				end
+				
+				dropdown:addOptions()
+			
+				if options["Flag"] then
+					tree.Elements[options["Flag"]] = dropdown
+					tree.ConfigData[options["Flag"]] = options["CurrentOption"][1]
+				end
+				
+				-- logic
+				NewConnection(dropdown["80"], "MouseEnter", function()
+					dropdown.Hover = true
+					TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+					TweenService:Create(dropdown["88"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
+					TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
+				end)
+
+				NewConnection(dropdown["80"], "MouseLeave", function()
+					dropdown.Hover = false
+
+					if not dropdown.MouseDown then
+						TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+						TweenService:Create(dropdown["88"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+						TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+					end
+				end)
+
+				NewConnection(UserInputService, "InputBegan", function(input)
+					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dropdown.Hover then
+						dropdown.MouseDown = true
+						TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 0.95}):Play()
+						dropdown:activated()
+					end
+				end)
+
+				NewConnection(UserInputService, "InputEnded", function(input)
+					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+						dropdown.MouseDown = false	
+						
+						if dropdown.Hover then
+							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+						else
+							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(dropdown["88"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
+					end
+				end)
+				
+				return dropdown
+			end
 			return section
 		end
 		
 		return tab
 	end
-	
 	return tree
 end
 
 local Window = library:CreateWindow({
 	Name = "Lynxe UI",
 	Icon = "rbxassetid://10709782497",
-	
-	UIHotkey = Enum.KeyCode.P,
+
+	UItoggleBind = "P",
+
+	LynxeUIPrompts = true,
 
 	LoadingTitle = "Title",
 	LoadingDescription = "Title Tip",
 
-	LynxeUIPrompts = true,
+	ConfigSaving = {
+		Enabled = true,
+		FolderName = "LynxeConfigs",
+		FileName = "lynxehub"
+	},
 
 	Discord = {
 		Invite = "NoInvite"
@@ -2571,15 +3421,48 @@ local section = tab1:CreateSection({ Name = "Test Section" })
 
 local button = section:CreateButton({ 
 	Name = "Test Button", 
-	CallBack = function() 
+	Callback = function() 
 		print("Test Button") 
 	end
 })
 
-local slider = section:CreateSlider({})
+local toggle = section:CreateToggle({
+	Name = "Test Toggle",
+	CurrentValue = false,
+	Flag = "Toggle1",
+	Callback = function(Value) 
+		print(Value)
+	end
+})
 
+local keybind = section:CreateKeyBind({
+	Name = "Test Keybind",
+	Keybind = "Q",
+	Flag = "Keybind1",
+	Callback = function(keybind) 
+		print(keybind.. " pressed") 
+	end
+})
 
-local section2 = tab1:CreateSection({ Name = "Test Section2" })
-local section3 = tab1:CreateSection({ Name = "Test Section3" })
+local slider = section:CreateSlider({
+	Name = "Test Slider",
+	CurrentValue = 10,
+	Range = {min = 0, max = 100},
+	Increment = 1,
+	Flag = "slider1",
+	Callback = function(Value) 
+		print(Value)
+	end
+})
 
-local tab2 = Window:CreateTab({Name = "Test Tab", Icon = "rbxassetid://10709782497"})
+local dropdown = section:CreateDropdown({
+	Name = "Test Dropdown",
+	Options = {"Option 1", "Option 2"},
+	CurrentOption = {"Option 1"},
+	Flag = "Dropdown1",
+	Callback = function(Option)
+		print(Option)
+	end
+})
+
+local section2 = tab1:CreateSection({ Name = "Test Section 2" })
