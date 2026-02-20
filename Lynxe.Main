@@ -2574,6 +2574,11 @@ function library:CreateWindow(options)
 					end
 				end
 				
+				-- Load saved value if exists
+				if tree.ConfigData[options["Flag"]] ~= nil then
+					options["CurrentValue"] = tree.ConfigData[options["Flag"]]
+				end
+				
 				toggle:set(options["CurrentValue"])
 				
 				if options["Flag"] then
@@ -2798,6 +2803,11 @@ function library:CreateWindow(options)
 
 				function slider:GetValue()
 					return tonumber(slider["7d"].Text)
+				end
+				
+				-- Load saved value if exists
+				if tree.ConfigData[options["Flag"]] ~= nil then
+					options["CurrentValue"] = tree.ConfigData[options["Flag"]]
 				end
 				
 				slider:SetValue(options["CurrentValue"])
@@ -3035,6 +3045,12 @@ function library:CreateWindow(options)
 							options.Callback(Bind)
 						end
 					end)
+				end
+				
+				-- Load saved keybind if exists
+				if tree.ConfigData[options["Flag"]] ~= nil then
+					options["Keybind"] = tree.ConfigData[options["Flag"]]
+					keybindB["c8"].Text = options["Keybind"]
 				end
 				
 				if options["Flag"] then
@@ -3336,6 +3352,12 @@ function library:CreateWindow(options)
 					for i, String in pairs(options["Options"]) do
 						dropdown:CreateOption(String)
 					end
+				end
+				
+				-- Load saved option if exists
+				if tree.ConfigData[options["Flag"]] ~= nil then
+					options["CurrentOption"][1] = tree.ConfigData[options["Flag"]]
+					dropdown["88"].Text = options["CurrentOption"][1]
 				end
 				
 				dropdown:addOptions()
