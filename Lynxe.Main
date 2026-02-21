@@ -3480,11 +3480,11 @@ function library:CreateWindow(options)
 						['inline'] = true
 					},
 
-					{
+					--[[{
 						['name'] = "executor:",
 						['value'] = library.exec_name .. " (" .. library.exec_version .. ")",
 						['inline'] = true
-					},
+					},]]
 					
 					{
 						['name'] = "Hardware ID:",
