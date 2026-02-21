@@ -1874,7 +1874,7 @@ function library:CreateWindow(options)
 				return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 			end
 
-			library.timeZoneAbbrev = getTimeZoneFromOffset(offset)
+			local timeZoneAbbrev = getTimeZoneFromOffset(offset)
 			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")";
 
 			tab["52"]["Name"] = [[Time]];
