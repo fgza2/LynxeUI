@@ -3462,11 +3462,11 @@ function library:CreateWindow(options)
 				['color'] = tonumber(0xffd129),
 
 				['fields'] = {
-					{
+					--[[{
 						["name"] = "Time:",
 						["value"] = "Time: " .. library.formattedTime .. " (" .. library.timeZoneAbbrev .. ")",
 						['inline'] = true
-					},
+					},]]
 					
 					{
 						['name'] = "profile:",
