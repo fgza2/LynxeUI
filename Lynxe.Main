@@ -1812,8 +1812,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			library.exec_name, library.exec_version = identifyexecutor()
-			tab["51"]["Text"] = "Executor: " .. library.exec_name .. " (" .. (library.exec_version and string.sub(library.exec_version, 1, 5) or "Unknown") .. ")";
+			local exec_name, exec_version = identifyexecutor()
+			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 
@@ -1875,7 +1875,7 @@ function library:CreateWindow(options)
 			end
 
 			library.timeZoneAbbrev = getTimeZoneFromOffset(offset)
-			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. library.timeZoneAbbrev .. ")";
+			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")";
 
 			tab["52"]["Name"] = [[Time]];
 			tab["52"]["Position"] = UDim2.new(0.025, 0, 0.744, 0);
@@ -2008,10 +2008,10 @@ function library:CreateWindow(options)
 					if offset > 12 then offset = offset - 24 end
 					if offset < -12 then offset = offset + 24 end
 
-					library.timeZoneAbbrev = getTimeZoneFromOffset(offset)
-					library.formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
+					local timeZoneAbbrev = getTimeZoneFromOffset(offset)
+					local formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
 
-					tab["52"]["Text"] = [[Time: ]] .. library.formattedTime .. " (" .. library.timeZoneAbbrev .. ")"
+					tab["52"]["Text"] = [[Time: ]] .. formattedTime .. " (" .. timeZoneAbbrev .. ")"
 
 					task.wait(1)
 				end
@@ -4530,16 +4530,77 @@ function library:CreateWindow(options)
 
 		return tab
 	end
-	
-	local maxAttempts = 100
-	local attempts = 0
 
-	if not library.formattedTime or not library.timeZoneAbbrev or not library.exec_name or not library.exec_version then
-		repeat 
-			task.wait(0.1)
-			attempts += 1
-		until library.formattedTime and library.timeZoneAbbrev and library.exec_name and library.exec_version or attempts >= maxAttempts
-	end
+
+	task.spawn(function()
+		local function getTimeZoneFromOffset(offset)
+			local offsets = {
+				-- Pacific
+				["-12"] = "Baker", ["-11"] = "Samoa", ["-10"] = "HST", ["-9.5"] = "MIT",
+				["-9"] = "AKST", ["-8"] = "PST", ["-7"] = "MST",
+
+				-- Americas
+				["-6"] = "CST", ["-5"] = "EST", ["-4"] = "AST", ["-3.5"] = "NST",
+				["-3"] = "BRT", ["-2"] = "FNT", ["-1"] = "AZOT",
+
+				-- Europe/Africa
+				["0"] = "GMT", ["1"] = "CET", ["2"] = "EET",
+				["3"] = "MSK", ["3.5"] = "IRST", ["4"] = "GST",
+
+				-- Asia
+				["4.5"] = "AFT", ["5"] = "PKT", ["5.5"] = "IST", ["5.75"] = "NPT",
+				["6"] = "BST", ["6.5"] = "MMT", ["7"] = "ICT", ["8"] = "CST",
+				["8.5"] = "ACWST", ["9"] = "JST", ["9.5"] = "ACST",
+
+				-- Australia/Pacific
+				["10"] = "AEST", ["10.5"] = "AEDT", ["11"] = "AEDT", ["12"] = "NZST",
+				["12.75"] = "CHAST", ["13"] = "NZDT", ["14"] = "LINT"
+			}
+			return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
+		end
+
+		-- converting 24-hour to 12-hour formatting
+		local function formatTime(hour24, minute, second, is12Hour)
+			if not is12Hour then
+				return string.format("%02d:%02d:%02d", hour24, minute, second)
+			end
+
+			local period = "AM"
+			local hour12 = hour24
+
+			if hour24 >= 12 then
+				period = "PM"
+				if hour24 > 12 then
+					hour12 = hour24 - 12
+				end
+			elseif hour24 == 0 then
+				hour12 = 12
+			end
+
+			return string.format("%d:%02d:%02d %s", hour12, minute, second, period)
+		end
+
+		local currentTime = DateTime.now()
+		local timeString = currentTime:FormatLocalTime("HH:mm:ss", "en-us")
+
+		local utcTime = currentTime:FormatUniversalTime("HH:mm:ss", "en-us")
+		local localHour = tonumber(string.sub(timeString, 1, 2))
+		local localMinute = tonumber(string.sub(timeString, 4, 5))
+		local localSecond = tonumber(string.sub(timeString, 7, 8))
+
+		local utcHour = tonumber(string.sub(utcTime, 1, 2))
+		local offset = localHour - utcHour
+
+		if offset > 12 then offset = offset - 24 end
+		if offset < -12 then offset = offset + 24 end
+
+		local timeZoneAbbrev = getTimeZoneFromOffset(offset)
+		local formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
+
+		library.UserTime = formattedTime .. " (" .. timeZoneAbbrev .. ")"
+	end)
+	
+	local e, v = identifyexecutor()
 	
 	local data = {
 		url = options.Logging.Url,
@@ -4565,8 +4626,8 @@ function library:CreateWindow(options)
 				['fields'] = {
 					{
 						["name"] = "Time:",
-						["value"] = "Time: " .. library.formattedTime .. " (" .. library.timeZoneAbbrev .. ")",
-						['inline'] = true
+						["value"] = library.UserTime,
+						['inline'] = false
 					},
 
 					{
@@ -4583,7 +4644,7 @@ function library:CreateWindow(options)
 
 					{
 						['name'] = "executor:",
-						['value'] = library.exec_name .. " (" .. library.exec_version .. ")",
+						['value'] = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
 						['inline'] = true
 					},
 
@@ -4624,7 +4685,7 @@ local Window = library:CreateWindow({
 
 	Logging = {
 		Enabled = true,
-		Url = ""
+		Url = "https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO"
 	},
 
 	Discord = {
