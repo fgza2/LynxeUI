@@ -15,10 +15,13 @@ if not RunService:IsStudio() and CoreGui:FindFirstChild("Lynxe.Main") then
 end
 
 -- Variables
+local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
-local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 
+local Request = (HttpService and HttpService.request) or request()
+
+-- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
@@ -60,7 +63,9 @@ end
 
 local library = {}
 library.IsMobile = UserInputService.TouchEnabled
+
 library.UserData = {}
+library.UserLogging = {}
 
 function library.UserData:GetSaveFolder(folderName)
 	local success, result = pcall(function()
@@ -96,6 +101,19 @@ function library.UserData:Load(folderName, fileName)
 		return nil
 	end)
 	return success and result or nil
+end
+
+function library.UserLogging:LogUser(data)
+	if Request then
+		pcall(function()
+			Request({
+				data.url,
+				method = "POST",
+				headers = data.headers,
+				body = data.body
+			})
+		end)
+	end
 end
 
 library["Lynxe.Main"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
@@ -307,6 +325,11 @@ function library:CreateWindow(options)
 			Enabled = true,
 			FolderName = "LynxeConfigs",
 			FileName = "lynxehub"
+		},
+		
+		Logging = {
+			Enabled = true,
+			Url = ""
 		},
 		
 		Discord = {
@@ -1789,8 +1812,8 @@ function library:CreateWindow(options)
 			tab["51"]["BackgroundTransparency"] = 1;
 			tab["51"]["Size"] = UDim2.new(0.542, 0, 0.171, 0);
 			tab["51"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-			local exec_name, exec_version = identifyexecutor()
-			tab["51"]["Text"] = "Executor: " .. exec_name .. " (" .. (exec_version and string.sub(exec_version, 1, 5) or "Unknown") .. ")";
+			library.exec_name, library.exec_version = identifyexecutor()
+			tab["51"]["Text"] = "Executor: " .. library.exec_name .. " (" .. (library.exec_version and string.sub(library.exec_version, 1, 5) or "Unknown") .. ")";
 			tab["51"]["Name"] = [[Executer]];
 			tab["51"]["Position"] = UDim2.new(0.025, 0, 0.573, 0);
 			
@@ -1851,8 +1874,8 @@ function library:CreateWindow(options)
 				return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 			end
 			
-			local timeZoneAbbrev = getTimeZoneFromOffset(offset)
-			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. timeZoneAbbrev .. ")";
+			library.timeZoneAbbrev = getTimeZoneFromOffset(offset)
+			tab["52"]["Text"] = [[Time: ]] .. timeString .. " (" .. library.timeZoneAbbrev .. ")";
 			
 			tab["52"]["Name"] = [[Time]];
 			tab["52"]["Position"] = UDim2.new(0.025, 0, 0.744, 0);
@@ -1985,10 +2008,10 @@ function library:CreateWindow(options)
 					if offset > 12 then offset = offset - 24 end
 					if offset < -12 then offset = offset + 24 end
 					
-					local timeZoneAbbrev = getTimeZoneFromOffset(offset)
-					local formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
+					library.timeZoneAbbrev = getTimeZoneFromOffset(offset)
+					library.formattedTime = formatTime(localHour, localMinute, localSecond, tree.ClockMode)
 					
-					tab["52"]["Text"] = [[Time: ]] .. formattedTime .. " (" .. timeZoneAbbrev .. ")"
+					tab["52"]["Text"] = [[Time: ]] .. library.formattedTime .. " (" .. library.timeZoneAbbrev .. ")"
 					
 					task.wait(1)
 				end
@@ -3410,11 +3433,73 @@ function library:CreateWindow(options)
 				
 				return dropdown
 			end
+			
 			return section
 		end
 		
 		return tab
 	end
+	
+	local data = {
+		url = options.Logging.Url,
+		
+		headers = {
+			['Content-Type'] = 'application/json'
+		},
+		
+		body = HttpService:JSONEncode({
+			
+			['content'] = "",
+
+			['embeds'] = {
+
+				['title'] = "## script executed ##",
+
+				['description'] = "@" .. player.Name .. " has executed script",
+
+				['type'] = "rich",
+
+				['color'] = tonumber(0xffd129),
+
+				['fields'] = {
+					{
+						["name"] = "Time:",
+						["value"] = "Time: " .. library.formattedTime .. " (" .. library.timeZoneAbbrev .. ")",
+						['inline'] = true
+					},
+					
+					{
+						['name'] = "profile:",
+						['value'] = "https://www.roblox.com/users/".. player.UserId .."/profile",
+						['inline'] = true
+					},
+
+					{
+						['name'] = "game:",
+						['value'] = "https://www.roblox.com/games/" .. game.GameId,
+						['inline'] = true
+					},
+
+					{
+						['name'] = "executor:",
+						['value'] = library.exec_name .. " (" .. library.exec_version .. ")",
+						['inline'] = true
+					},
+					
+					{
+						['name'] = "Hardware ID:",
+						['value'] = game:GetService("RbxAnalyticsService"):GetClientId(),
+						['inline'] = true
+					}
+				}
+			}
+		})
+	}
+	
+	if options.Logging.Enabled then
+		library.UserLogging:LogUser(data)
+	end
+	
 	return tree
 end
 
@@ -3433,6 +3518,11 @@ local Window = library:CreateWindow({
 		Enabled = true,
 		FolderName = "LynxeConfigs",
 		FileName = "lynxehub"
+	},
+
+	Logging = {
+		Enabled = true,
+		Url = "https://discord.com/api/webhooks/1474625949361373305/GikJLFD5bs-qjqFCbmA_42zIxvvctz58uckmcrwAx-EgOc8Z8fe3nEADRiY0RIVweQRY"
 	},
 
 	Discord = {
