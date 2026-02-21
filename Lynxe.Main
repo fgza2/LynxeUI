@@ -19,7 +19,7 @@ local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
-local Request = (HttpService and HttpService.request) or request()
+local Request = (HttpService and HttpService:RequestAsync()) or request()
 
 -- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
