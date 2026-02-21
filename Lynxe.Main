@@ -19,7 +19,7 @@ local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
-local RequestFunc = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
+local RequestFunc = request()
 
 -- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -105,14 +105,14 @@ end
 
 function library.UserLogging:LogUser(data)
 	if RequestFunc then
-		pcall(function()
+		--pcall(function()
 			RequestFunc({
 				Url = data.Url,
 				Method = "POST",
 				Headers = data.Headers,
 				Body = data.Body
 			})
-		end)
+		--end)
 	else
 		print("er")
 	end
