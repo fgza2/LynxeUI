@@ -19,7 +19,7 @@ local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
-local Request = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
+local RequestFunc = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
 
 -- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -104,15 +104,17 @@ function library.UserData:Load(folderName, fileName)
 end
 
 function library.UserLogging:LogUser(data)
-	if Request then
+	if RequestFunc then
 		pcall(function()
-			Request({
-				data.url,
-				method = "POST",
-				headers = data.headers,
-				body = data.body
+			RequestFunc({
+				Url = data.Url,
+				Method = "POST",
+				Headers = data.Headers,
+				Body = data.Body
 			})
 		end)
+	else
+		print("er")
 	end
 end
 
@@ -4603,19 +4605,19 @@ function library:CreateWindow(options)
 	local e, v = identifyexecutor()
 	
 	local data = {
-		url = options.Logging.Url,
+		Url = options.Logging.Url,
 
-		headers = {
+		Headers = {
 			['Content-Type'] = 'application/json'
 		},
 
-		body = HttpService:JSONEncode({
+		Body = HttpService:JSONEncode({
 
 			['content'] = "",
 
 			['embeds'] = {
 
-				['title'] = "## script executed ##",
+				['title'] = "##script executed##",
 
 				['description'] = "@" .. player.Name .. " has executed script",
 
@@ -4633,25 +4635,25 @@ function library:CreateWindow(options)
 					{
 						['name'] = "profile:",
 						['value'] = "https://www.roblox.com/users/".. player.UserId .."/profile",
-						['inline'] = true
+						['inline'] = false
 					},
 
 					{
 						['name'] = "game:",
 						['value'] = "https://www.roblox.com/games/" .. game.GameId,
-						['inline'] = true
+						['inline'] = false
 					},
 
 					{
 						['name'] = "executor:",
 						['value'] = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
-						['inline'] = true
+						['inline'] = false
 					},
 
 					{
 						['name'] = "Hardware ID:",
 						['value'] = game:GetService("RbxAnalyticsService"):GetClientId(),
-						['inline'] = true
+						['inline'] = false
 					}
 				}
 			}
