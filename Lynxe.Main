@@ -4608,9 +4608,10 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = {
-				embed = {
+			content = "",
 
+			embeds = {
+				{
 					title = "##script executed##",
 
 					description = "@" .. player.Name .. " has executed script",
