@@ -6,7 +6,7 @@ This library is new and may have bugs and missing features or elements
 ## Booting the library
 ```lua
 local lynxe = loadstring(game:HttpGet("https://raw.githubusercontent.com/fgza2/LynxeUI/refs/heads/main/Lynxe.Main"))()
-```
+``` 
 
 
 ## Creating a window
