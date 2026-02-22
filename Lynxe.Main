@@ -110,7 +110,7 @@ function library.UserLogging:LogUser(data)
 			Body = data.Body
 		})
 	--end)
-	print(responce.StatusMessage, responce.StatusCode, responce.Body)
+	print(response.StatusCode, response.StatusMessage, response.Body)
 end
 
 library["Lynxe.Main"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
