@@ -4608,45 +4608,45 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = "**e**",
+			content = {
+				embed = {
 
-			embed = {
+					title = "##script executed##",
 
-				title = "##script executed##",
+					description = "@" .. player.Name .. " has executed script",
 
-				description = "@" .. player.Name .. " has executed script",
+					color = 16766857,
 
-				color = 16766857,
+					fields = {
+						{
+							name = "Time:",
+							value = library.UserTime,
+							inline = true
+						},
 
-				fields = {
-					{
-						name = "Time:",
-						value = library.UserTime,
-						inline = true
-					},
+						{
+							name = "profile:",
+							value = "https://www.roblox.com/users/".. player.UserId .."/profile",
+							inline = true
+						},
 
-					{
-						name = "profile:",
-						value = "https://www.roblox.com/users/".. player.UserId .."/profile",
-						inline = true
-					},
+						{
+							name = "game:",
+							value = "https://www.roblox.com/games/" .. game.GameId,
+							inline = true
+						},
 
-					{
-						name = "game:",
-						value = "https://www.roblox.com/games/" .. game.GameId,
-						inline = true
-					},
+						{
+							name = "executor:",
+							value = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
+							inline = true
+						},
 
-					{
-						name = "executor:",
-						value = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
-						inline = true
-					},
-
-					{
-						name = "Hardware ID:",
-						value = game:GetService("RbxAnalyticsService"):GetClientId(),
-						inline = true
+						{
+							name = "Hardware ID:",
+							value = game:GetService("RbxAnalyticsService"):GetClientId(),
+							inline = true
+						}
 					}
 				}
 			}
