@@ -4608,9 +4608,9 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = " ",
+			content = "**e**",
 
-			embeds = {
+			embed = {
 
 				title = "##script executed##",
 
@@ -4622,31 +4622,31 @@ function library:CreateWindow(options)
 					{
 						name = "Time:",
 						value = library.UserTime,
-						inline = false
+						inline = true
 					},
 
 					{
 						name = "profile:",
 						value = "https://www.roblox.com/users/".. player.UserId .."/profile",
-						inline = false
+						inline = true
 					},
 
 					{
 						name = "game:",
 						value = "https://www.roblox.com/games/" .. game.GameId,
-						inline = false
+						inline = true
 					},
 
 					{
 						name = "executor:",
 						value = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
-						inline = false
+						inline = true
 					},
 
 					{
 						name = "Hardware ID:",
 						value = game:GetService("RbxAnalyticsService"):GetClientId(),
-						inline = false
+						inline = true
 					}
 				}
 			}
