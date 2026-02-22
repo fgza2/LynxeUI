@@ -2283,11 +2283,11 @@ function library:CreateWindow(options)
 						else
 							totalHeight = totalHeight + child.Size.Y.Offset
 						end
-						totalHeight = totalHeight + 20
+						totalHeight = totalHeight + 30
 					end
 				end
 
-				totalHeight = totalHeight + 20
+				totalHeight = totalHeight + 30
 				page.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
 			end
 
@@ -4660,4 +4660,5 @@ function library:CreateWindow(options)
 
 	return tree
 end
+
 return library
