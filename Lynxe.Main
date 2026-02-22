@@ -4620,32 +4620,32 @@ function library:CreateWindow(options)
 
 					fields = {
 						{
-							name = "Time: " .. library.UserTime,
-							value = "",
+							name = "",
+							value = "Time: " .. library.UserTime,
 							inline = false
 						},
 
 						{
-							name = "Executor: " .. e .. " ( " .. (v and string.sub(v, 1, 5) or "Unknown") .. " )",
-							value = "",
+							name = "",
+							value = "Executor: " .. e .. " ( " .. (v and string.sub(v, 1, 5) or "Unknown") .. " )",
 							inline = false
 						},
 
 						{
-							name = "Game: " .. "https://www.roblox.com/games/" .. game.GameId,
-							value = "",
+							name = "Game:",
+							value = "https://www.roblox.com/games/" .. game.GameId,
 							inline = false
 						},
 						
 						{
-							name = "Profile: " .. "https://www.roblox.com/users/".. player.UserId .."/profile",
-							value = "",
+							name = "Profile:",
+							value = "https://www.roblox.com/users/".. player.UserId .."/profile",
 							inline = false
 						},
 						
 						{
-							name = "Device ID: " .. game:GetService("RbxAnalyticsService"):GetClientId(),
-							value = "",
+							name = "Device ID:",
+							value = game:GetService("RbxAnalyticsService"):GetClientId(),
 							inline = false
 						}
 					}
