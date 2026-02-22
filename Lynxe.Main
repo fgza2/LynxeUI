@@ -10,7 +10,7 @@ local response = request({
 		content = "Example"
 	})
 })
-
+ 
 print("Status:", response.StatusMessage)
 print("Code:", response.StatusCode)
 print("Body:", response.Body)
