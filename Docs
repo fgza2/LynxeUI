@@ -1,0 +1,7 @@
+# lynxe LIB 
+These Docs are to show the user how to setup and use this library
+
+## Booting the library
+'''lua
+local Lynxe = loadstring(game:HttpGet("https://raw.githubusercontent.com/GithubJay00/LynxeUI/refs/heads/main/Lynxe.Main"))()
+'''
