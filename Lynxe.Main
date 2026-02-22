@@ -1,9 +1,15 @@
+local HttpService = game:GetService("HttpService")
+
 local response = request({
 	Url = "https://discord.com/api/webhooks/1474723230681137213/L_F18XJds4TWLyrpGVQKngmbocmFpWRcd-tEBY771s5tZ_JMPTQKIvpX7x-L3o_IxXtO",
 	Method = "POST",
-	Body = "Example"
+	Headers = {
+		["Content-Type"] = "application/json"
+	},
+	Body = HttpService:JSONEncode({
+		content = "Example"
+	})
 })
 
-print(response.StatusMessage)                               -- Output: OK
-print(response.StatusCode)                                  -- Output: 200
-print(game:GetService("HttpService"):JSONDecode(response.Body).data) -- Output: Example
+print(response.StatusMessage)  -- Should now print: OK
+print(response.StatusCode)     -- Should now print: 200
