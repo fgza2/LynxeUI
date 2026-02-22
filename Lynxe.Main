@@ -4626,25 +4626,25 @@ function library:CreateWindow(options)
 						},
 
 						{
-							name = "profile:",
+							name = "Profile:",
 							value = "https://www.roblox.com/users/".. player.UserId .."/profile",
 							inline = false
 						},
 
 						{
-							name = "game: " .. game.Name,
+							name = "Game:",
 							value = "https://www.roblox.com/games/" .. game.GameId,
 							inline = false
 						},
 
 						{
-							name = "executor:",
+							name = "Executor:",
 							value = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
 							inline = false
 						},
 
 						{
-							name = "Hardware ID:",
+							name = "Device ID:",
 							value = game:GetService("RbxAnalyticsService"):GetClientId(),
 							inline = false
 						}
@@ -4656,7 +4656,6 @@ function library:CreateWindow(options)
 
 	if options.Logging.Enabled then
 		library.UserLogging:LogUser(data)
-		print("bu")
 	end
 
 	return tree
