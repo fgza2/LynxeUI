@@ -11,5 +11,6 @@ local response = request({
 	})
 })
 
-print(response.StatusMessage)  -- Should now print: OK
-print(response.StatusCode)     -- Should now print: 200
+print("Status:", response.StatusMessage)
+print("Code:", response.StatusCode)
+print("Body:", response.Body)
