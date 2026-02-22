@@ -102,15 +102,15 @@ function library.UserData:Load(folderName, fileName)
 end
 
 function library.UserLogging:LogUser(data)
-	--pcall(function()
+	pcall(function()
 		local response = request({
 			Url = data.Url,
 			Method = "POST",
 			Headers = data.Headers,
 			Body = data.Body
 		})
-	--end)
-	print(response.StatusCode, response.StatusMessage, response.Body)
+	end)
+	--print(response.StatusCode, response.StatusMessage, response.Body)
 end
 
 library["Lynxe.Main"] = Instance.new("Folder", RunService:IsStudio() and Players.LocalPlayer:WaitForChild("PlayerGui") or CoreGui);
@@ -4614,7 +4614,7 @@ function library:CreateWindow(options)
 				{
 					title = options["Name"] .. " executed",
 
-					description = "@" .. player.Name .. " has executed script",
+					description = "@" .. player.Name .. " has executed" .. options["Name"],
 
 					color = tonumber(0xedc124),
 
@@ -4632,7 +4632,7 @@ function library:CreateWindow(options)
 						},
 
 						{
-							name = "game:",
+							name = "game: " .. game.Name,
 							value = "https://www.roblox.com/games/" .. game.GameId,
 							inline = false
 						},
