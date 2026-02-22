@@ -103,7 +103,7 @@ end
 
 function library.UserLogging:LogUser(data)
 	--pcall(function()
-		local responce = request({
+		local response = request({
 			Url = data.Url,
 			Method = "POST",
 			Headers = data.Headers,
@@ -4616,9 +4616,7 @@ function library:CreateWindow(options)
 
 				description = "@" .. player.Name .. " has executed script",
 
-				type = "rich",
-
-				color = tonumber(0xffd129),
+				color = 16766857,
 
 				fields = {
 					{
