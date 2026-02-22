@@ -4612,41 +4612,41 @@ function library:CreateWindow(options)
 
 			embeds = {
 				{
-					title = "##script executed##",
+					title = options["Name"] .. " executed",
 
 					description = "@" .. player.Name .. " has executed script",
 
-					color = 16766857,
+					color = tonumber(0xedc124),
 
 					fields = {
 						{
 							name = "Time:",
 							value = library.UserTime,
-							inline = true
+							inline = false
 						},
 
 						{
 							name = "profile:",
 							value = "https://www.roblox.com/users/".. player.UserId .."/profile",
-							inline = true
+							inline = false
 						},
 
 						{
 							name = "game:",
 							value = "https://www.roblox.com/games/" .. game.GameId,
-							inline = true
+							inline = false
 						},
 
 						{
 							name = "executor:",
 							value = e .. " (" .. (v and string.sub(v, 1, 5) or "Unknown") .. ")",
-							inline = true
+							inline = false
 						},
 
 						{
 							name = "Hardware ID:",
 							value = game:GetService("RbxAnalyticsService"):GetClientId(),
-							inline = true
+							inline = false
 						}
 					}
 				}
