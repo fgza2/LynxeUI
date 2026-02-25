@@ -834,7 +834,9 @@ function library:CreateWindow(options)
 						Image = "rbxassetid://10709790644"
 					})
 				end
-
+				
+				setclipboard(options["Discord"]["Invite"])
+				
 				task.spawn(function()
 					CopyButton.Image = "rbxassetid://10709790644"
 					task.wait(2)
@@ -911,7 +913,7 @@ function library:CreateWindow(options)
 		tree["c6"]["BorderSizePixel"] = 0;
 		tree["c6"]["BackgroundColor3"] = Color3.fromRGB(11, 11, 11);
 		tree["c6"]["AnchorPoint"] = Vector2.new(1, 0);
-		tree["c6"]["Size"] = UDim2.new(0, 160, 0, 50);
+		tree["c6"]["Size"] = UDim2.new(0, 180, 0, 50);
 		tree["c6"]["Position"] = UDim2.new(1, 0, 0, -60);
 		tree["c6"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 		tree["c6"]["Name"] = [[DiscordPrompt]];
@@ -1560,19 +1562,21 @@ function library:CreateWindow(options)
 						elseif element.SetValue then
 							element:SetValue(value)
 						elseif element.activated then 
+							
 							local index = table.find(options["Options"], value)
 
 							if index then
 								options["CurrentOption"][1] = value
 								element["88"].Text = value
 							end
+							
 						elseif element["c8"] then
 							element["c8"].Text = value
 							options["Keybind"] = value
 						end
 					end
 
-					-- Load special settings
+					-- Load settings
 					if tree.ConfigData["UItoggleBind"] then
 						options["UItoggleBind"] = tree.ConfigData["UItoggleBind"]
 						tree["3f"].Text = tree.ConfigData["UItoggleBind"]
@@ -1580,6 +1584,7 @@ function library:CreateWindow(options)
 
 					if tree.ConfigData["ClockMode"] ~= nil then
 						tree["ClockMode"] = tree.ConfigData["ClockMode"]
+						
 						if tree["ClockMode"] then
 							library:tween(tree["37"], {Position = UDim2.new(0, 26, 0, 2)})
 							tree["37"].BackgroundColor3 = Color3.fromRGB(130, 130, 130)
@@ -1591,6 +1596,7 @@ function library:CreateWindow(options)
 				end
 
 				if options["LynxeUIPrompts"] then
+					task.wait(2)
 					library:Notify({
 						Title = "Config saving",
 						Info = "Loaded config data",
@@ -2119,7 +2125,7 @@ function library:CreateWindow(options)
 			tab["53"]["Size"] = UDim2.new(1, 0, 1, 0);
 			tab["53"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["53"]["ScrollBarThickness"] = 2;
-			tab["53"]["ScrollBarImageTransparency"] = 1;
+			tab["53"]["ScrollBarImageTransparency"] = 0;
 			tab["53"]["ScrollingEnabled"] = true;
 			tab["53"]["BackgroundTransparency"] = 1;
 
@@ -2416,7 +2422,7 @@ function library:CreateWindow(options)
 					button["67"] = Instance.new("UIPadding", button["66"]);
 					button["67"]["PaddingTop"] = UDim.new(0, 6);
 					button["67"]["PaddingRight"] = UDim.new(0, 6);
-					button["67"]["PaddingLeft"] = UDim.new(0, 6);
+					button["67"]["PaddingLeft"] = UDim.new(0, 8);
 					button["67"]["PaddingBottom"] = UDim.new(0, 6);
 				end
 
@@ -2566,7 +2572,7 @@ function library:CreateWindow(options)
 					toggle["72"] = Instance.new("UIPadding", toggle["71"]);
 					toggle["72"]["PaddingTop"] = UDim.new(0, 6);
 					toggle["72"]["PaddingRight"] = UDim.new(0, 6);
-					toggle["72"]["PaddingLeft"] = UDim.new(0, 6);
+					toggle["72"]["PaddingLeft"] = UDim.new(0, 8);
 					toggle["72"]["PaddingBottom"] = UDim.new(0, 6);
 				end
 
@@ -2786,7 +2792,7 @@ function library:CreateWindow(options)
 					slider["7f"] = Instance.new("UIPadding", slider["7e"]);
 					slider["7f"]["PaddingTop"] = UDim.new(0, 6);
 					slider["7f"]["PaddingRight"] = UDim.new(0, 6);
-					slider["7f"]["PaddingLeft"] = UDim.new(0, 6);
+					slider["7f"]["PaddingLeft"] = UDim.new(0, 8);
 					slider["7f"]["PaddingBottom"] = UDim.new(0, 6);
 				end
 
@@ -2971,7 +2977,7 @@ function library:CreateWindow(options)
 					keybindB["c7"] = Instance.new("UIPadding", keybindB["c6"]);
 					keybindB["c7"]["PaddingTop"] = UDim.new(0, 6);
 					keybindB["c7"]["PaddingRight"] = UDim.new(0, 6);
-					keybindB["c7"]["PaddingLeft"] = UDim.new(0, 6);
+					keybindB["c7"]["PaddingLeft"] = UDim.new(0, 8);
 					keybindB["c7"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -3190,7 +3196,7 @@ function library:CreateWindow(options)
 					dropdown["89"] = Instance.new("UIPadding", dropdown["88"]);
 					dropdown["89"]["PaddingTop"] = UDim.new(0, 6);
 					dropdown["89"]["PaddingRight"] = UDim.new(0, 6);
-					dropdown["89"]["PaddingLeft"] = UDim.new(0, 6);
+					dropdown["89"]["PaddingLeft"] = UDim.new(0, 8);
 					dropdown["89"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -3313,7 +3319,7 @@ function library:CreateWindow(options)
 					dropdown[keyPrefix .. "_padding"] = Instance.new("UIPadding", dropdown[keyPrefix .. "_name"]);
 					dropdown[keyPrefix .. "_padding"]["PaddingTop"] = UDim.new(0, 6);
 					dropdown[keyPrefix .. "_padding"]["PaddingRight"] = UDim.new(0, 6);
-					dropdown[keyPrefix .. "_padding"]["PaddingLeft"] = UDim.new(0, 6);
+					dropdown[keyPrefix .. "_padding"]["PaddingLeft"] = UDim.new(0, 8);
 					dropdown[keyPrefix .. "_padding"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -3511,7 +3517,7 @@ function library:CreateWindow(options)
 				button["67"] = Instance.new("UIPadding", button["66"]);
 				button["67"]["PaddingTop"] = UDim.new(0, 6);
 				button["67"]["PaddingRight"] = UDim.new(0, 6);
-				button["67"]["PaddingLeft"] = UDim.new(0, 6);
+				button["67"]["PaddingLeft"] = UDim.new(0, 8);
 				button["67"]["PaddingBottom"] = UDim.new(0, 6);
 			end
 
@@ -3661,7 +3667,7 @@ function library:CreateWindow(options)
 				toggle["72"] = Instance.new("UIPadding", toggle["71"]);
 				toggle["72"]["PaddingTop"] = UDim.new(0, 6);
 				toggle["72"]["PaddingRight"] = UDim.new(0, 6);
-				toggle["72"]["PaddingLeft"] = UDim.new(0, 6);
+				toggle["72"]["PaddingLeft"] = UDim.new(0, 8);
 				toggle["72"]["PaddingBottom"] = UDim.new(0, 6);
 			end
 
@@ -3881,7 +3887,7 @@ function library:CreateWindow(options)
 				slider["7f"] = Instance.new("UIPadding", slider["7e"]);
 				slider["7f"]["PaddingTop"] = UDim.new(0, 6);
 				slider["7f"]["PaddingRight"] = UDim.new(0, 6);
-				slider["7f"]["PaddingLeft"] = UDim.new(0, 6);
+				slider["7f"]["PaddingLeft"] = UDim.new(0, 8);
 				slider["7f"]["PaddingBottom"] = UDim.new(0, 6);
 			end
 
@@ -4239,7 +4245,7 @@ function library:CreateWindow(options)
 				dropdown["85"] = Instance.new("UIPadding", dropdown["84"]);
 				dropdown["85"]["PaddingTop"] = UDim.new(0, 6);
 				dropdown["85"]["PaddingRight"] = UDim.new(0, 6);
-				dropdown["85"]["PaddingLeft"] = UDim.new(0, 6);
+				dropdown["85"]["PaddingLeft"] = UDim.new(0, 8);
 				dropdown["85"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -4408,7 +4414,7 @@ function library:CreateWindow(options)
 				dropdown[keyPrefix .. "_padding"] = Instance.new("UIPadding", dropdown[keyPrefix .. "_name"]);
 				dropdown[keyPrefix .. "_padding"]["PaddingTop"] = UDim.new(0, 6);
 				dropdown[keyPrefix .. "_padding"]["PaddingRight"] = UDim.new(0, 6);
-				dropdown[keyPrefix .. "_padding"]["PaddingLeft"] = UDim.new(0, 6);
+				dropdown[keyPrefix .. "_padding"]["PaddingLeft"] = UDim.new(0, 8);
 				dropdown[keyPrefix .. "_padding"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -4608,20 +4614,20 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = "",
+			content = "a script execution has been detected.",
 
 			embeds = {
 				{
 					title = options["Name"] .. " executed",
 
-					description = "@" .. player.Name .. " has executed " .. options["Name"],
+					description = "@ " .. player.Name .. " has executed " .. options["Name"],
 
-					color = tonumber(0xedc124),
+					color = tonumber(0x000000),
 
 					fields = {
 						{
 							name = "",
-							value = "Time: " .. library.UserTime,
+							value = "Date: " .. os.date("%m/%d/%Y") .. "   Time: " .. library.UserTime,
 							inline = false
 						},
 
@@ -4644,7 +4650,7 @@ function library:CreateWindow(options)
 						},
 						
 						{
-							name = "Device ID:",
+							name = "Ver ID:",
 							value = game:GetService("RbxAnalyticsService"):GetClientId(),
 							inline = false
 						}
