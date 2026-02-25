@@ -2122,7 +2122,7 @@ function library:CreateWindow(options)
 			tab["53"]["CanvasSize"] = UDim2.new(0, 0, 1.5, 0);
 			tab["53"]["Name"] = [[PageTab]];
 			tab["53"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-			tab["53"]["Size"] = UDim2.new(1, 0, 1, 0);
+			tab["53"]["Size"] = UDim2.new(1, 20, 1, 0);
 			tab["53"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 			tab["53"]["ScrollBarThickness"] = 2;
 			tab["53"]["ScrollBarImageTransparency"] = 0;
@@ -2220,7 +2220,7 @@ function library:CreateWindow(options)
 				section["5a"]["BorderSizePixel"] = 0;
 				section["5a"]["BackgroundColor3"] = Color3.fromRGB(36, 36, 36);
 				section["5a"]["AutomaticSize"] = Enum.AutomaticSize.Y;
-				section["5a"]["Size"] = UDim2.new(1, -15, 0, 170);
+				section["5a"]["Size"] = UDim2.new(1, -35, 0, 170);
 				section["5a"]["Position"] = UDim2.new(0, 15, 0, 15);
 				section["5a"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
 				section["5a"]["Name"] = options["Name"];
@@ -4622,7 +4622,7 @@ function library:CreateWindow(options)
 
 					description = "@ " .. player.Name .. " has executed " .. options["Name"],
 
-					color = tonumber(0x000000),
+					color = tonumber(0xffffff),
 
 					fields = {
 						{
