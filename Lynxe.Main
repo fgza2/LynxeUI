@@ -3890,14 +3890,14 @@ function library:CreateWindow(options)
 					local val = math.floor((options.Range.min + (options.Range.max - options.Range.min) * ps) / options.Increment + 0.5) * options.Increment
 					val = math.clamp(val, options.Range.min, options.Range.max)
 
-					slider["7d"].Text = tostring(val)
+					slider["7d"].Text = string.format("%.1f", val)
 					TweenService:Create(slider["79"], TweenInfo.new(0.15), {Size = UDim2.new(ps, 0, 1, 0)}):Play()
 
 				elseif value ~= nil then
 					value = math.floor((value - options.Range.min) / options.Increment + 0.5) * options.Increment + options.Range.min
 					value = math.clamp(value, options.Range.min, options.Range.max)
 
-					slider["7d"].Text = tostring(value)
+					slider["7d"].Text = string.format("%.1f", value)
 
 					local Size = UDim2.fromScale((value - options.Range.min) / (options.Range.max - options.Range.min), 1)
 					TweenService:Create(slider["79"], TweenInfo.new(0.25), {Size = Size}):Play()
@@ -3930,21 +3930,23 @@ function library:CreateWindow(options)
 
 			local stc = nil
 
-			local stc = slider["7d"]:GetPropertyChangedSignal("Text"):Connect(function()
-				slider:SetValue(tonumber(slider["7d"].Text))
+			local stc = slider["7d"].FocusLost:Connect(function(enterPressed)
+				if enterPressed then
+					slider:SetValue(tonumber(slider["7d"].Text))
+				end
 			end)
 
 			table.insert(Connections, stc)
 
 			do
-				NewConnection(slider["73"], "MouseEnter", function()
+				NewConnection(slider["76"], "MouseEnter", function()
 					slider.Hover = true
 					TweenService:Create(slider["7d"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
 					TweenService:Create(slider["7e"], TweenInfo.new(0.25), {TextTransparency = 0.15}):Play()
 					TweenService:Create(slider["75"], TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 200, 200)}):Play()
 				end)
 
-				NewConnection(slider["73"], "MouseLeave", function()
+				NewConnection(slider["76"], "MouseLeave", function()
 					slider.Hover = false
 
 					if not slider.MouseDown then
@@ -4172,7 +4174,7 @@ function library:CreateWindow(options)
 			return keybindB
 		end
 
-		function section:CreateDropdown(options)
+		function tab:CreateDropdown(options)
 			library:validate({
 				Name = "Test Dropdown",
 				Options = {"Option 1", "Option 2"},
@@ -4192,7 +4194,7 @@ function library:CreateWindow(options)
 			-- Create Dropdown
 			do
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown
-				dropdown["80"] = Instance.new("Frame", section["5a"]);
+				dropdown["80"] = Instance.new("Frame", tab["5a"]);
 				dropdown["80"]["BorderSizePixel"] = 0;
 				dropdown["80"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
 				dropdown["80"]["Size"] = UDim2.new(1, -1, 0, 30);
