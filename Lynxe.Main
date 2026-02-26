@@ -3230,8 +3230,8 @@ function library:CreateWindow(options)
 				function dropdown:activated()
 					if not dropdown["8a"].Visible then
 						
-						local OY = #options["Options"]
-						local NewSizeY = OY * 30
+						local optionCount = #options["Options"]
+						local NewSizeY = ((optionCount * 30) + 20)
 						
 						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 						TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
@@ -4314,8 +4314,8 @@ function library:CreateWindow(options)
 			function dropdown:activated()
 				if not dropdown["8a"].Visible then
 
-					local OY = #options["Options"]
-					local NewSizeY = OY * 30
+					local optionCount = #options["Options"]
+					local NewSizeY = ((optionCount * 30) + 20)
 
 					TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 					TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
@@ -4592,7 +4592,7 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = "your script was executed bro im crine 😭😭😭😭 son",
+			content = "your script was executed bro im crine  😭😭😭😭  son",
 
 			embeds = {
 				{
