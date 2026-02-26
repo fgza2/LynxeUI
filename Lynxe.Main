@@ -2806,14 +2806,14 @@ function library:CreateWindow(options)
 						local val = math.floor((options.Range.min + (options.Range.max - options.Range.min) * ps) / options.Increment + 0.5) * options.Increment
 						val = math.clamp(val, options.Range.min, options.Range.max)
 
-						slider["7d"].Text = tostring(val)
+						slider["7d"].Text = string.format("%.1f", val)
 						TweenService:Create(slider["79"], TweenInfo.new(0.15), {Size = UDim2.new(ps, 0, 1, 0)}):Play()
 
 					elseif value ~= nil then
 						value = math.floor((value - options.Range.min) / options.Increment + 0.5) * options.Increment + options.Range.min
 						value = math.clamp(value, options.Range.min, options.Range.max)
 
-						slider["7d"].Text = tostring(value)
+						slider["7d"].Text = string.format("%.1f", value)
 
 						local Size = UDim2.fromScale((value - options.Range.min) / (options.Range.max - options.Range.min), 1)
 						TweenService:Create(slider["79"], TweenInfo.new(0.25), {Size = Size}):Play()
