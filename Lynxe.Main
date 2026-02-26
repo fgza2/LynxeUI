@@ -3370,10 +3370,9 @@ function library:CreateWindow(options)
 					end
 				end
 
-				-- Load saved option if exists
 				if tree.ConfigData[options["Flag"]] ~= nil then
 					options["CurrentOption"][1] = tree.ConfigData[options["Flag"]]
-					dropdown["88"].Text = options["CurrentOption"][1]
+					dropdown["84"].Text = options["Name"] .. ":  " .. options["CurrentOption"][1]
 				end
 
 				dropdown:addOptions()
@@ -4456,10 +4455,9 @@ function library:CreateWindow(options)
 				end
 			end
 
-			-- Load saved option if exists
 			if tree.ConfigData[options["Flag"]] ~= nil then
 				options["CurrentOption"][1] = tree.ConfigData[options["Flag"]]
-				dropdown["88"].Text = options["CurrentOption"][1]
+				dropdown["84"].Text = options["Name"] .. ":  " .. options["CurrentOption"][1]
 			end
 
 			dropdown:addOptions()
