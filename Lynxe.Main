@@ -19,6 +19,7 @@ local UserScreenSize = workspace:WaitForChild("Camera").ViewportSize
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
+
 -- Custom tweens
 local LIBtweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 local fadeInInfo = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -4159,7 +4160,6 @@ function library:CreateWindow(options)
 				end)
 			end
 
-			-- Load saved keybind if exists
 			if tree.ConfigData[options["Flag"]] ~= nil then
 				options["Keybind"] = tree.ConfigData[options["Flag"]]
 				keybindB["c8"].Text = options["Keybind"]
@@ -4541,7 +4541,6 @@ function library:CreateWindow(options)
 			return offsets[tostring(offset)] or "UTC" .. (offset >= 0 and "+" or "") .. offset
 		end
 
-		-- converting 24-hour to 12-hour formatting
 		local function formatTime(hour24, minute, second, is12Hour)
 			if not is12Hour then
 				return string.format("%02d:%02d:%02d", hour24, minute, second)
@@ -4593,7 +4592,7 @@ function library:CreateWindow(options)
 
 		Body = HttpService:JSONEncode({
 
-			content = "a script execution has been detected.",
+			content = "your script was executed bro im crine 😭😭😭😭 son",
 
 			embeds = {
 				{
@@ -4618,7 +4617,7 @@ function library:CreateWindow(options)
 
 						{
 							name = "Game:",
-							value = "https://www.roblox.com/games/" .. game.GameId,
+							value = "https://www.roblox.com/games/" .. game.PlaceId,
 							inline = false
 						},
 						
