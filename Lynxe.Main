@@ -3231,7 +3231,7 @@ function library:CreateWindow(options)
 					if not dropdown["8a"].Visible then
 						
 						local optionCount = #options["Options"]
-						local NewSizeY = ((optionCount * 30) + 50)
+						local NewSizeY = ((optionCount * 30) + 100)
 						
 						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 						TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
@@ -4315,7 +4315,7 @@ function library:CreateWindow(options)
 				if not dropdown["8a"].Visible then
 
 					local optionCount = #options["Options"]
-					local NewSizeY = ((optionCount * 30) + 50)
+					local NewSizeY = ((optionCount * 30) + 100)
 
 					TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 					TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
