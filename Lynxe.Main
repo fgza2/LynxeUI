@@ -3382,6 +3382,7 @@ function library:CreateWindow(options)
 					tree.ConfigData[options["Flag"]] = options["CurrentOption"][1]
 				end
 
+
 				-- logic
 				NewConnection(dropdown["80"], "MouseEnter", function()
 					dropdown.Hover = true
@@ -3410,12 +3411,14 @@ function library:CreateWindow(options)
 					if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 						dropdown.MouseDown = false	
 
-						if dropdown.Hover then
-							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
-						else
-							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
-							TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
-							TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						if dropdown["80"] and dropdown["84"] and dropdown["83"] then
+							if dropdown.Hover then
+								TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							else
+								TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+								TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+								TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+							end
 						end
 					end
 				end)
@@ -4190,7 +4193,7 @@ function library:CreateWindow(options)
 			-- Create Dropdown
 			do
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown
-				dropdown["80"] = Instance.new("Frame", tab["5a"]);
+				dropdown["80"] = Instance.new("Frame", tab["53"]);
 				dropdown["80"]["BorderSizePixel"] = 0;
 				dropdown["80"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
 				dropdown["80"]["Size"] = UDim2.new(1, -1, 0, 30);
@@ -4492,12 +4495,14 @@ function library:CreateWindow(options)
 				if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
 					dropdown.MouseDown = false	
 
-					if dropdown.Hover then
-						TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
-					else
-						TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
-						TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
-						TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+					if dropdown["80"] and dropdown["84"] and dropdown["83"] then
+						if dropdown.Hover then
+							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+						else
+							TweenService:Create(dropdown["80"], TweenInfo.new(0.1), {BackgroundTransparency = 1}):Play()
+							TweenService:Create(dropdown["84"], TweenInfo.new(0.25), {TextTransparency = 0.5}):Play()
+							TweenService:Create(dropdown["83"], TweenInfo.new(0.25), {Color = Color3.fromRGB(100, 100, 100)}):Play()
+						end
 					end
 				end
 			end)
