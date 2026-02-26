@@ -3142,7 +3142,7 @@ function library:CreateWindow(options)
 					dropdown["84"]["BackgroundTransparency"] = 1;
 					dropdown["84"]["Size"] = UDim2.new(1, 0, 0, 15);
 					dropdown["84"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-					dropdown["84"]["Text"] = options["Name"];
+					dropdown["84"]["Text"] = options["Name"] .. ":  " .. options["CurrentOption"][1];
 					dropdown["84"]["Name"] = [[Name]];
 					dropdown["84"]["Position"] = UDim2.new(0, 0, 0, 7);
 
@@ -3173,24 +3173,6 @@ function library:CreateWindow(options)
 					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Indicate.UICorner
 					dropdown["87"] = Instance.new("UICorner", dropdown["86"]);
 					dropdown["87"]["CornerRadius"] = UDim.new(0, 5);
-
-
-					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option
-					dropdown["88"] = Instance.new("TextLabel", dropdown["80"]);
-					dropdown["88"]["BorderSizePixel"] = 0;
-					dropdown["88"]["TextSize"] = 14;
-					dropdown["88"]["TextXAlignment"] = Enum.TextXAlignment.Left;
-					dropdown["88"]["TextTransparency"] = 0.5;
-					dropdown["88"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-					dropdown["88"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-					dropdown["88"]["TextColor3"] = Color3.fromRGB(251, 251, 251);
-					dropdown["88"]["BackgroundTransparency"] = 1;
-					dropdown["88"]["AnchorPoint"] = Vector2.new(1, 0);
-					dropdown["88"]["Size"] = UDim2.new(1, -180, 0, 15);
-					dropdown["88"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-					dropdown["88"]["Text"] = options["CurrentOption"][1];
-					dropdown["88"]["Name"] = [[Option]];
-					dropdown["88"]["Position"] = UDim2.new(1, -40, 0, 7);
 
 
 					-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option.UIPadding
@@ -3246,7 +3228,11 @@ function library:CreateWindow(options)
 				-- methods, functions
 				function dropdown:activated()
 					if not dropdown["8a"].Visible then
-						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, 170)}):Play()
+						
+						local OY = #options["Options"]
+						local NewSizeY = OY * 30
+						
+						TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 						TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
 
 						dropdown["8a"].Visible = true
@@ -3265,7 +3251,10 @@ function library:CreateWindow(options)
 				end
 
 				function dropdown:CreateOption(name)
-
+					
+					dropdown["80"].Size.Y.Offset = dropdown["80"].Size.Y.Offset + 30
+					dropdown["8a"].Size.Y.Offset = dropdown["8a"].Size.Y.Offset + 30
+					
 					local dropdownOption = {
 						Hover = false,
 						MouseDown = false,
@@ -3348,7 +3337,7 @@ function library:CreateWindow(options)
 
 							if index then
 								options["CurrentOption"][1] = options["Options"][index]
-								dropdown["88"].Text = options["CurrentOption"][1]
+								dropdown["84"].Text = options["Name"] .. ":  " .. options["CurrentOption"][1]
 							end
 
 							options.Callback(options["CurrentOption"][1])
@@ -4183,7 +4172,7 @@ function library:CreateWindow(options)
 			return keybindB
 		end
 
-		function tab:CreateDropdown(options)
+		function section:CreateDropdown(options)
 			library:validate({
 				Name = "Test Dropdown",
 				Options = {"Option 1", "Option 2"},
@@ -4203,7 +4192,7 @@ function library:CreateWindow(options)
 			-- Create Dropdown
 			do
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown
-				dropdown["80"] = Instance.new("Frame", tab["53"]);
+				dropdown["80"] = Instance.new("Frame", section["5a"]);
 				dropdown["80"]["BorderSizePixel"] = 0;
 				dropdown["80"]["BackgroundColor3"] = Color3.fromRGB(21, 21, 21);
 				dropdown["80"]["Size"] = UDim2.new(1, -1, 0, 30);
@@ -4237,7 +4226,7 @@ function library:CreateWindow(options)
 				dropdown["84"]["BackgroundTransparency"] = 1;
 				dropdown["84"]["Size"] = UDim2.new(1, 0, 0, 15);
 				dropdown["84"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-				dropdown["84"]["Text"] = options["Name"];
+				dropdown["84"]["Text"] = options["Name"] .. ":  " .. options["CurrentOption"][1];
 				dropdown["84"]["Name"] = [[Name]];
 				dropdown["84"]["Position"] = UDim2.new(0, 0, 0, 7);
 
@@ -4246,7 +4235,7 @@ function library:CreateWindow(options)
 				dropdown["85"] = Instance.new("UIPadding", dropdown["84"]);
 				dropdown["85"]["PaddingTop"] = UDim.new(0, 6);
 				dropdown["85"]["PaddingRight"] = UDim.new(0, 6);
-				dropdown["85"]["PaddingLeft"] = UDim.new(0, 8);
+				dropdown["85"]["PaddingLeft"] = UDim.new(0, 6);
 				dropdown["85"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -4270,29 +4259,11 @@ function library:CreateWindow(options)
 				dropdown["87"]["CornerRadius"] = UDim.new(0, 5);
 
 
-				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option
-				dropdown["88"] = Instance.new("TextLabel", dropdown["80"]);
-				dropdown["88"]["BorderSizePixel"] = 0;
-				dropdown["88"]["TextSize"] = 14;
-				dropdown["88"]["TextXAlignment"] = Enum.TextXAlignment.Left;
-				dropdown["88"]["TextTransparency"] = 0.5;
-				dropdown["88"]["BackgroundColor3"] = Color3.fromRGB(255, 255, 255);
-				dropdown["88"]["FontFace"] = Font.new([[rbxasset://fonts/families/SourceSansPro.json]], Enum.FontWeight.Regular, Enum.FontStyle.Normal);
-				dropdown["88"]["TextColor3"] = Color3.fromRGB(251, 251, 251);
-				dropdown["88"]["BackgroundTransparency"] = 1;
-				dropdown["88"]["AnchorPoint"] = Vector2.new(1, 0);
-				dropdown["88"]["Size"] = UDim2.new(1, -180, 0, 15);
-				dropdown["88"]["BorderColor3"] = Color3.fromRGB(0, 0, 0);
-				dropdown["88"]["Text"] = options["CurrentOption"][1];
-				dropdown["88"]["Name"] = [[Option]];
-				dropdown["88"]["Position"] = UDim2.new(1, -40, 0, 7);
-
-
 				-- StarterGui.UI.Window.MainContainer.TestTab.SectionOne.Dropdown.Option.UIPadding
 				dropdown["89"] = Instance.new("UIPadding", dropdown["88"]);
 				dropdown["89"]["PaddingTop"] = UDim.new(0, 6);
 				dropdown["89"]["PaddingRight"] = UDim.new(0, 6);
-				dropdown["89"]["PaddingLeft"] = UDim.new(0, 6);
+				dropdown["89"]["PaddingLeft"] = UDim.new(0, 8);
 				dropdown["89"]["PaddingBottom"] = UDim.new(0, 6);
 
 
@@ -4341,7 +4312,11 @@ function library:CreateWindow(options)
 			-- methods, functions
 			function dropdown:activated()
 				if not dropdown["8a"].Visible then
-					TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, 170)}):Play()
+
+					local OY = #options["Options"]
+					local NewSizeY = OY * 30
+
+					TweenService:Create(dropdown["80"], TweenInfo.new(0.35), {Size = UDim2.new(1, -1, 0, NewSizeY)}):Play()
 					TweenService:Create(dropdown["86"], TweenInfo.new(0.35), {ImageColor3 = Color3.fromRGB(230, 230, 230), Rotation = -90}):Play()
 
 					dropdown["8a"].Visible = true
@@ -4360,6 +4335,9 @@ function library:CreateWindow(options)
 			end
 
 			function dropdown:CreateOption(name)
+
+				dropdown["80"].Size.Y.Offset = dropdown["80"].Size.Y.Offset + 30
+				dropdown["8a"].Size.Y.Offset = dropdown["8a"].Size.Y.Offset + 30
 
 				local dropdownOption = {
 					Hover = false,
@@ -4443,7 +4421,7 @@ function library:CreateWindow(options)
 
 						if index then
 							options["CurrentOption"][1] = options["Options"][index]
-							dropdown["88"].Text = options["CurrentOption"][1]
+							dropdown["84"].Text = options["Name"] .. ":  " .. options["CurrentOption"][1]
 						end
 
 						options.Callback(options["CurrentOption"][1])
@@ -4529,6 +4507,7 @@ function library:CreateWindow(options)
 					end
 				end
 			end)
+
 			return dropdown
 		end
 
