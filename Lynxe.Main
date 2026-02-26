@@ -3252,8 +3252,8 @@ function library:CreateWindow(options)
 
 				function dropdown:CreateOption(name)
 					
-					dropdown["80"].Size.Y.Offset = dropdown["80"].Size.Y.Offset + 30
-					dropdown["8a"].Size.Y.Offset = dropdown["8a"].Size.Y.Offset + 30
+					dropdown["80"].Size = dropdown["80"].Size + UDim2.fromOffset(0, 30)
+					dropdown["8a"].Size = dropdown["8a"].Size + UDim2.fromOffset(0, 30)
 					
 					local dropdownOption = {
 						Hover = false,
@@ -4337,8 +4337,8 @@ function library:CreateWindow(options)
 
 			function dropdown:CreateOption(name)
 
-				dropdown["80"].Size.Y.Offset = dropdown["80"].Size.Y.Offset + 30
-				dropdown["8a"].Size.Y.Offset = dropdown["8a"].Size.Y.Offset + 30
+				dropdown["80"].Size = dropdown["80"].Size + UDim2.fromOffset(0, 30)
+				dropdown["8a"].Size = dropdown["8a"].Size + UDim2.fromOffset(0, 30)
 
 				local dropdownOption = {
 					Hover = false,
