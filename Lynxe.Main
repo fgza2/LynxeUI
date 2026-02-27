@@ -3234,10 +3234,10 @@ function library:CreateWindow(options)
 						local NewSizeY = nil
 
 						if optionCount > 3 then
-							NewSizeY = (optionCount * 57) - 25
+							NewSizeY = (optionCount * 57) - 15
 
 						elseif optionCount < 3 then
-							NewSizeY = (optionCount * 57) + 25
+							NewSizeY = (optionCount * 57) + 15
 
 						else
 							NewSizeY = (optionCount * 57)
@@ -4328,10 +4328,10 @@ function library:CreateWindow(options)
 					local NewSizeY = nil
 					
 					if optionCount > 3 then
-						NewSizeY = (optionCount * 57) - 25
+						NewSizeY = (optionCount * 57) - 15
 						
 					elseif optionCount < 3 then
-						NewSizeY = (optionCount * 57) + 25
+						NewSizeY = (optionCount * 57) + 15
 						
 					else
 						NewSizeY = (optionCount * 57)
