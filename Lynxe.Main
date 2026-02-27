@@ -2278,24 +2278,41 @@ function library:CreateWindow(options)
 			local sizeChangeConnections = {}
 
 			local function updateCanvasSize()
-
 				local page = tab["53"]
+				local layout = page:FindFirstChildOfClass("UIListLayout")
+				local padding = page:FindFirstChildOfClass("UIPadding")
+				
 				local totalHeight = 0
-
+				local children = {}
+				
+				-- Collect all valid children
 				for _, child in pairs(page:GetChildren()) do
 					if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UIPadding" then
-						local childSize = child.AbsoluteSize
-
-						if childSize.Y > 0 then
-							totalHeight = totalHeight + childSize.Y
-						else
-							totalHeight = totalHeight + child.Size.Y.Offset
-						end
-						totalHeight = totalHeight + 30
+						table.insert(children, child)
 					end
 				end
-
-				totalHeight = totalHeight + 30
+				
+				-- Calculate total height
+				for i, child in ipairs(children) do
+					local childSize = child.AbsoluteSize
+					
+					if childSize.Y > 0 then
+						totalHeight = totalHeight + childSize.Y
+					else
+						totalHeight = totalHeight + child.Size.Y.Offset
+					end
+					
+					-- Add spacing between children (not after the last one)
+					if i < #children and layout then
+						totalHeight = totalHeight + layout.Padding.Offset
+					end
+				end
+				
+				-- Add top and bottom padding
+				if padding then
+					totalHeight = totalHeight + padding.PaddingTop.Offset + padding.PaddingBottom.Offset
+				end
+				
 				page.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
 			end
 
